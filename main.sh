@@ -39,22 +39,15 @@ print_avalaible_functions() {
     print "${VAR//'declare -f'/}"
     print_separator
 }
-######################################
-# while :; do
-#     print_avalaible_functions
-# 
-#     print "Entrez une fonction et éventuellement ses arguments :"
-#     read -p "> " FUNCTION
-# 
-#     echo "$FUNCTION"
-# 
-#     ${FUNCTION}
-# done 
 
-1_choose_a_use_case_name
-2_ask_for_characteristic_informations
-3_ask_for_main_success_scenario
-4_ask_for_extensions
-5_ask_for_sub_variation
-convert_a_specification ${use_case_outputfilename}
+script_title
+
+while :; do
+    1_choose_a_use_case_name
+    2_ask_for_characteristic_informations
+    3_ask_for_main_success_scenario
+    4_ask_for_extensions
+    5_ask_for_sub_variation
+    convert_a_specification ${use_case_outputfilename}
+done
 exit_ok
