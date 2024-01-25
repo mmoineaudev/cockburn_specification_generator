@@ -5,6 +5,9 @@ use_case_number=$(ls ./markdown/ | wc -l)
 use_case_outputfilename=
 use_case_markdown_folder='markdown'
 
+mkdir markdown
+mkdir word
+
 print_to_uc_file() {
     echo "$@" >> ${use_case_outputfilename}
     # le markdown ça aime bien les sauts de lignes
@@ -144,7 +147,7 @@ CHARACTERISTIC_INFORMATION_EXPLAINATION=(
         fi
         step="step: ${current_step}"
         print_to_uc_file "* ***step#${step} [SOUS-VARIATION]***"
-        step_counter=
+        step_counter=1
         # On saisit ici les sous-steps
         while :; do
             print "Sub-step ${step_counter} :"
