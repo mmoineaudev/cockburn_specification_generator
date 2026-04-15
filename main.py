@@ -632,12 +632,21 @@ class CockburnGUI(QMainWindow):
         layout.addWidget(button_box)
         
         if dialog.exec() == QDialog.DialogCode.Accepted:
-            # In a real implementation, this would save the extension
+            # Validate required fields
             step = self.step_combo.currentText()
             condition = self.condition_combo.currentText()
-            condition_desc = self.condition_text.toPlainText()
-            action_desc = self.action_text.toPlainText()
+            condition_desc = self.condition_text.toPlainText().strip()
+            action_desc = self.action_text.toPlainText().strip()
             linked_use_case = self.link_combo.currentText() if self.link_combo.currentText() != "" else None
+            
+            # Validate required fields
+            if not condition_desc:
+                QMessageBox.warning(dialog, "Validation Error", "Condition description is required")
+                return
+                
+            if not action_desc:
+                QMessageBox.warning(dialog, "Validation Error", "Action description is required")
+                return
             
             # Display the extension in the preview
             self.display_extension(step, condition, action_desc, linked_use_case)
