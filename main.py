@@ -333,6 +333,25 @@ class CockburnGUI(QMainWindow):
         self.subvar_steps_editor.setMaximumHeight(100)
         layout.addWidget(self.subvar_steps_editor)
         
+        # Sub-steps display area with numbering
+        layout.addWidget(QLabel("Formatted Sub-steps:"))
+        self.subvar_steps_display = QTextEdit()
+        self.subvar_steps_display.setReadOnly(True)
+        self.subvar_steps_display.setMaximumHeight(100)
+        self.subvar_steps_display.setStyleSheet("""
+            QTextEdit {
+                background-color: #f9f9f9;
+                border: 1px solid #ddd;
+                border-radius: 3px;
+                padding: 5px;
+                font-family: monospace;
+            }
+        """)
+        layout.addWidget(self.subvar_steps_display)
+        
+        # Connect text changed signal to update display
+        self.subvar_steps_editor.textChanged.connect(self.update_substep_display)
+        
         # Buttons
         button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         button_box.accepted.connect(dialog.accept)
@@ -355,6 +374,21 @@ class CockburnGUI(QMainWindow):
                 for line in steps.split('\n'):
                     if line.strip():
                         print(f"  - {line}")
+                        
+    def update_substep_display(self):
+        """Update the formatted sub-step display with automatic numbering"""
+        text = self.subvar_steps_editor.toPlainText().strip()
+        
+        # Split by lines and number each step
+        lines = text.split('\n')
+        numbered_lines = []
+        
+        for i, line in enumerate(lines, 1):
+            if line.strip():
+                numbered_lines.append(f"  * {i}. {line}")
+        
+        # Update the display
+        self.subvar_steps_display.setText('\n'.join(numbered_lines))
             
     def show_scenario_context_menu(self, position):
         """Show context menu for main scenario editor"""
