@@ -237,7 +237,16 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Performance Target: Extension creation within 3 seconds
 * Frequency: Medium - multiple per use case
 
----
+* [x] Implementation task 1: Create extensions section with "+" button
+* [ ] Implementation task 2: Implement extension dialog with step number dropdown
+* [ ] Implementation task 3: Add condition type selection (timeout, error, validation, system)
+* [ ] Implementation task 4: Implement condition description input with character limit
+* [ ] Implementation task 5: Add action/description input field
+* [ ] Implementation task 6: Implement use case linking functionality
+* [ ] Implementation task 7: Save extensions with proper format
+* [ ] Implementation task 8: Display extensions in preview pane with color coding
+* [ ] Implementation task 9: Implement auto-save for extensions
+* [ ] Implementation task 10: Add validation for required fields
 
 ## USE CASE: UC-005 Create Sub-Variations
 **Priority:** Medium  

@@ -109,6 +109,9 @@ class CockburnGUI(QMainWindow):
         # Sub-Variations Tab
         self.create_subvariations_tab()
         
+        # Extensions Tab - Add this after Sub-Variations Tab
+        self.create_extensions_tab()
+        
         parent.addWidget(editor_widget)
         
     def create_characteristic_tab(self):
@@ -239,6 +242,30 @@ class CockburnGUI(QMainWindow):
         subvariations_layout.addWidget(self.subvariations_editor)
         
         self.tab_widget.addTab(subvariations_widget, "Sub-Variations")
+        
+    def create_extensions_tab(self):
+        """Create the extensions tab"""
+        extensions_widget = QWidget()
+        extensions_layout = QVBoxLayout(extensions_widget)
+        
+        # Header
+        extensions_header = QLabel("Extensions")
+        extensions_header_font = QFont()
+        extensions_header_font.setBold(True)
+        extensions_header.setFont(extensions_header_font)
+        extensions_layout.addWidget(extensions_header)
+        
+        # Add button for new extensions
+        add_extension_button = QPushButton("Add Extension (+)")
+        add_extension_button.clicked.connect(self.add_extension)
+        extensions_layout.addWidget(add_extension_button)
+        
+        # Extensions list/preview area
+        self.extensions_preview = QTextEdit()
+        self.extensions_preview.setReadOnly(True)
+        extensions_layout.addWidget(self.extensions_preview)
+        
+        self.tab_widget.addTab(extensions_widget, "Extensions")
         
     def setup_menu(self):
         """Setup the menu bar"""
@@ -509,6 +536,11 @@ class CockburnGUI(QMainWindow):
         else:
             QMessageBox.warning(self, "Export Error", "No use case selected")
             
+    def add_extension(self):
+        """Add a new extension to the current use case"""
+        # For now, show a simple dialog
+        QMessageBox.information(self, "Add Extension", "Extension creation dialog would appear here")
+        
     def show_about(self):
         """Show about dialog"""
         QMessageBox.about(self, "About Cockburn Specification Generator",
