@@ -263,9 +263,29 @@ class CockburnGUI(QMainWindow):
         # Extensions list/preview area
         self.extensions_preview = QTextEdit()
         self.extensions_preview.setReadOnly(True)
+        # Add styling for extensions
+        self.extensions_preview.setStyleSheet("""
+            QTextEdit {
+                background-color: #f0f0f0;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                padding: 5px;
+            }
+        """)
         extensions_layout.addWidget(self.extensions_preview)
         
         self.tab_widget.addTab(extensions_widget, "Extensions")
+        
+    def display_extension(self, step, condition, action, linked_use_case=None):
+        """Display an extension with proper formatting"""
+        # Format the extension properly
+        if linked_use_case:
+            extension_text = f"* ***step altered #{step}*** > {condition} : {action} (linked to {linked_use_case})\n"
+        else:
+            extension_text = f"* ***step altered #{step}*** > {condition} : {action}\n"
+            
+        self.extensions_preview.append(extension_text)
+        self.extensions_preview.moveCursor(self.extensions_preview.textCursor().End)
         
     def setup_menu(self):
         """Setup the menu bar"""
@@ -606,10 +626,10 @@ class CockburnGUI(QMainWindow):
             condition = self.condition_combo.currentText()
             condition_desc = self.condition_text.toPlainText()
             action_desc = self.action_text.toPlainText()
+            linked_use_case = self.link_combo.currentText() if self.link_combo.currentText() != "" else None
             
             # Display the extension in the preview
-            extension_text = f"* ***step altered #{step}*** > {condition} : {action_desc}"
-            self.extensions_preview.append(extension_text)
+            self.display_extension(step, condition, action_desc, linked_use_case)
             
             QMessageBox.information(self, "Extension Added", f"Extension added for {step}")
         

@@ -242,9 +242,9 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * [x] Implementation task 3: Add condition type selection (timeout, error, validation, system)
 * [x] Implementation task 4: Implement condition description input with character limit
 * [x] Implementation task 5: Add action/description input field
-* [ ] Implementation task 6: Implement use case linking functionality
-* [ ] Implementation task 7: Save extensions with proper format
-* [ ] Implementation task 8: Display extensions in preview pane with color coding
+* [x] Implementation task 6: Implement use case linking functionality
+* [x] Implementation task 7: Save extensions with proper format
+* [x] Implementation task 8: Display extensions in preview pane with color coding
 * [ ] Implementation task 9: Implement auto-save for extensions
 * [ ] Implementation task 10: Add validation for required fields
 
