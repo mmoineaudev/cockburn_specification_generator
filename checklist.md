@@ -238,7 +238,7 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Frequency: Medium - multiple per use case
 
 * [x] Implementation task 1: Create extensions section with "+" button
-* [ ] Implementation task 2: Implement extension dialog with step number dropdown
+* [x] Implementation task 2: Implement extension dialog with step number dropdown
 * [ ] Implementation task 3: Add condition type selection (timeout, error, validation, system)
 * [ ] Implementation task 4: Implement condition description input with character limit
 * [ ] Implementation task 5: Add action/description input field

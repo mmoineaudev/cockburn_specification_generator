@@ -538,8 +538,62 @@ class CockburnGUI(QMainWindow):
             
     def add_extension(self):
         """Add a new extension to the current use case"""
-        # For now, show a simple dialog
-        QMessageBox.information(self, "Add Extension", "Extension creation dialog would appear here")
+        # Create a dialog for adding extensions
+        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QTextEdit, QPushButton, QDialogButtonBox
+        
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Add Extension")
+        dialog.setModal(True)
+        
+        layout = QVBoxLayout(dialog)
+        
+        # Step number selection
+        step_layout = QHBoxLayout()
+        step_layout.addWidget(QLabel("Step to extend:"))
+        self.step_combo = QComboBox()
+        # For demo purposes, we'll populate with some sample steps
+        self.step_combo.addItems(["Step 1", "Step 2", "Step 3"]) 
+        step_layout.addWidget(self.step_combo)
+        layout.addLayout(step_layout)
+        
+        # Condition type
+        condition_layout = QHBoxLayout()
+        condition_layout.addWidget(QLabel("Condition type:"))
+        self.condition_combo = QComboBox()
+        self.condition_combo.addItems(["timeout", "error", "validation", "system"])
+        condition_layout.addWidget(self.condition_combo)
+        layout.addLayout(condition_layout)
+        
+        # Condition description
+        layout.addWidget(QLabel("Condition description:"))
+        self.condition_text = QTextEdit()
+        self.condition_text.setMaximumHeight(80)
+        layout.addWidget(self.condition_text)
+        
+        # Action description
+        layout.addWidget(QLabel("Action or alternative path:"))
+        self.action_text = QTextEdit()
+        self.action_text.setMaximumHeight(80)
+        layout.addWidget(self.action_text)
+        
+        # Buttons
+        button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        button_box.accepted.connect(dialog.accept)
+        button_box.rejected.connect(dialog.reject)
+        layout.addWidget(button_box)
+        
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            # In a real implementation, this would save the extension
+            step = self.step_combo.currentText()
+            condition = self.condition_combo.currentText()
+            condition_desc = self.condition_text.toPlainText()
+            action_desc = self.action_text.toPlainText()
+            
+            # Display the extension in the preview
+            extension_text = f"* ***step altered #{step}*** > {condition} : {action_desc}"
+            self.extensions_preview.append(extension_text)
+            
+            QMessageBox.information(self, "Extension Added", f"Extension added for {step}")
         
     def show_about(self):
         """Show about dialog"""
