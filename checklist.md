@@ -80,7 +80,13 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Performance Target: Create use case within 2 seconds
 * Frequency: Daily for development teams
 
----
+* [x] Implementation task 1: Create GUI framework with PyQt6
+* [x] Implementation task 2: Implement new use case creation wizard
+* [x] Implementation task 3: Add file saving functionality
+* [x] Implementation task 4: Implement auto-numbering of use cases
+* [x] Implementation task 5: Add template support to use case creation
+* [x] Implementation task 6: Initialize editor with empty characteristic information form
+* [x] Implementation task 7: Add functionality for adding new use cases to navigation tree
 
 ## USE CASE: UC-002 Edit Characteristic Information
 **Priority:** High  
@@ -125,7 +131,13 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Performance Target: Field edit and save within 3 seconds
 * Frequency: Multiple times per use case session
 
----
+* [x] Implementation task 1: Create form-based interface for editing characteristic information
+* [x] Implementation task 2: Add validation for all eight fields
+* [x] Implementation task 3: Implement real-time validation
+* [x] Implementation task 4: Add help tooltips to all fields
+* [x] Implementation task 5: Implement auto-save with 2-second delay
+* [x] Implementation task 6: Add status bar indicator for save operations
+* [x] Implementation task 7: Save changes to Markdown file
 
 ## USE CASE: UC-003 Edit Main Success Scenario
 **Priority:** High  
@@ -172,7 +184,14 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Performance Target: Step operations complete within 500ms
 * Frequency: Core editing activity for all use cases
 
----
+* [x] Implementation task 1: Create main success scenario editor with step display
+* [x] Implementation task 2: Implement step creation with automatic numbering
+* [x] Implementation task 3: Add drag-and-drop reordering functionality
+* [x] Implementation task 4: Add inline editing for steps
+* [x] Implementation task 5: Implement step deletion with validation
+* [x] Implementation task 6: Add step validation with length requirements
+* [x] Implementation task 7: Maintain sequential numbering after reordering
+* [x] Implementation task 8: Implement auto-save with 3-second delay
 
 ## USE CASE: UC-004 Manage Extensions
 **Priority:** High  
@@ -310,7 +329,13 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Performance Target: Project load within 2 seconds for 100 use cases
 * Frequency: Daily - start of work sessions
 
----
+* [x] Implementation task 1: Create file dialog for opening .cpz project files
+* [x] Implementation task 2: Implement ZIP file extraction logic
+* [x] Implementation task 3: Parse metadata.json to restore project information
+* [x] Implementation task 4: Load all Markdown files from project directory
+* [x] Implementation task 5: Populate navigation tree with use cases
+* [x] Implementation task 6: Restore cursor position and last selected use case
+* [x] Implementation task 7: Update title bar with project name and timestamp
 
 ## USE CASE: UC-007 Save Project
 **Priority:** High  
@@ -356,7 +381,16 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Performance Target: Save operation within 3 seconds for typical projects
 * Frequency: Frequent - multiple times per session
 
----
+* [x] Implementation task 1: Create manual save functionality (Ctrl+S)
+* [x] Implementation task 2: Implement unsaved changes detection
+* [x] Implementation task 3: Write Markdown files to temporary directory
+* [x] Implementation task 4: Update metadata.json with current timestamp
+* [x] Implementation task 5: Create ZIP archive with proper structure
+* [x] Implementation task 6: Add progress bar for large projects
+* [x] Implementation task 7: Write ZIP file to project location
+* [x] Implementation task 8: Show save confirmation in status bar
+* [x] Implementation task 9: Remove unsaved changes indicator
+* [x] Implementation task 10: Integrate with Git commit functionality
 
 ## USE CASE: UC-008 Export to Word
 **Priority:** High  
@@ -402,7 +436,16 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Performance Target: Word export within 10 seconds for typical use case
 * Frequency: Medium - before stakeholder reviews
 
----
+* [x] Implementation task 1: Create export to Word functionality
+* [x] Implementation task 2: Implement use case validation
+* [x] Implementation task 3: Integrate with Pandoc or python-docx
+* [x] Implementation task 4: Add HTML conversion support
+* [x] Implementation task 5: Apply document styling from templates
+* [x] Implementation task 6: Add metadata embedding
+* [x] Implementation task 7: Save Word document to word/ directory
+* [x] Implementation task 8: Show success notification
+* [x] Implementation task 9: Display file path in status bar
+* [x] Implementation task 10: Implement "Open Folder" option
 
 ## USE CASE: UC-009 Export All to Word
 **Priority:** Medium  
@@ -853,7 +896,16 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Performance Target: Validation completes within 200ms
 * Frequency: Very High - every edit
 
----
+* [x] Implementation task 1: Create validation engine framework
+* [x] Implementation task 2: Implement required fields validation
+* [x] Implementation task 3: Add structure validation checks
+* [x] Implementation task 4: Implement content quality checks
+* [x] Implementation task 5: Add visual indicators for validation results
+* [x] Implementation task 6: Display error messages in status bar
+* [x] Implementation task 7: Add navigation to problematic fields
+* [x] Implementation task 8: Create validation summary display
+* [x] Implementation task 9: Implement "Fix All" button functionality
+* [x] Implementation task 10: Add validation rule disabling in preferences
 
 ## USE CASE: UC-019 Global Preferences
 **Priority:** High  
