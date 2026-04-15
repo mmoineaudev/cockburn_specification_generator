@@ -55,6 +55,11 @@ class CockburnGUI(QMainWindow):
         self.extension_auto_save_timer.timeout.connect(self.auto_save_extensions)
         self.extension_auto_save_timer.start(30000)  # 30 seconds
         
+        # Setup sub-variation auto-save
+        self.subvar_auto_save_timer = QTimer()
+        self.subvar_auto_save_timer.timeout.connect(self.auto_save_subvariations)
+        self.subvar_auto_save_timer.start(30000)  # 30 seconds
+        
     def create_navigation_panel(self, parent):
         """Create the left navigation panel"""
         nav_widget = QWidget()
@@ -731,6 +736,12 @@ class CockburnGUI(QMainWindow):
         """Automatically save extensions every 30 seconds"""
         # In a real implementation, this would save the current extensions
         # to the use case file or a separate extensions file
+        pass
+        
+    def auto_save_subvariations(self):
+        """Automatically save sub-variations every 30 seconds"""
+        # In a real implementation, this would save the current sub-variations
+        # to the use case file or a separate subvariations file
         pass
         
     def get_current_time(self):

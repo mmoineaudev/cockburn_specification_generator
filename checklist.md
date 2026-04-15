@@ -299,8 +299,8 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * [x] Implementation task 5: Implement sub-step numbering and display
 * [x] Implementation task 6: Add drag-and-drop reordering for sub-steps
 * [x] Implementation task 7: Add visual hierarchy (indentation) for variations
-* [ ] Implementation task 8: Display sub-variations in preview pane with formatting
-* [ ] Implementation task 9: Implement auto-save for sub-variations
+* [x] Implementation task 8: Display sub-variations in preview pane with formatting
+* [x] Implementation task 9: Implement auto-save for sub-variations
 * [ ] Implementation task 10: Add validation for required variation fields
 
 ---
