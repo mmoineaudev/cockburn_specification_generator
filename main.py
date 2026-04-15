@@ -206,6 +206,8 @@ class CockburnGUI(QMainWindow):
         # Scenario editor
         self.scenario_editor = QTextEdit()
         self.scenario_editor.setPlaceholderText("Enter main success scenario steps here (one per line)")
+        self.scenario_editor.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.scenario_editor.customContextMenuRequested.connect(self.show_scenario_context_menu)
         scenario_layout.addWidget(self.scenario_editor)
         
         self.tab_widget.addTab(scenario_widget, "Main Scenario")
@@ -281,7 +283,7 @@ class CockburnGUI(QMainWindow):
         
         self.tab_widget.addTab(extensions_widget, "Extensions")
         
-    def display_extension(self, step, condition, action, linked_use_case=None):
+     def display_extension(self, step, condition, action, linked_use_case=None):
         """Display an extension with proper formatting"""
         # Format the extension properly
         if linked_use_case:
@@ -291,6 +293,19 @@ class CockburnGUI(QMainWindow):
             
         self.extensions_preview.append(extension_text)
         self.extensions_preview.moveCursor(self.extensions_preview.textCursor().End)
+        
+    def show_scenario_context_menu(self, position):
+        """Show context menu for main scenario editor"""
+        # Create the menu
+        menu = QMenu(self.scenario_editor)
+        
+        # Add sub-variation option
+        add_subvar_action = QAction("Add Sub-Variation", self)
+        add_subvar_action.triggered.connect(self.add_sub_variation)
+        menu.addAction(add_subvar_action)
+        
+        # Show the menu at the cursor position
+        menu.exec(self.scenario_editor.viewport().mapToGlobal(position))
         
     def setup_menu(self):
         """Setup the menu bar"""

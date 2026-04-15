@@ -292,6 +292,17 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Performance Target: Sub-variation creation within 5 seconds
 * Frequency: Low - used for complex scenarios
 
+* [x] Implementation task 1: Add "Add Sub-Variation" context menu item to main scenario
+* [ ] Implementation task 2: Implement sub-variation dialog with step selection
+* [ ] Implementation task 3: Add variation title input field
+* [ ] Implementation task 4: Create add sub-step functionality within variation
+* [ ] Implementation task 5: Implement sub-step numbering and display
+* [ ] Implementation task 6: Add drag-and-drop reordering for sub-steps
+* [ ] Implementation task 7: Add visual hierarchy (indentation) for variations
+* [ ] Implementation task 8: Display sub-variations in preview pane with formatting
+* [ ] Implementation task 9: Implement auto-save for sub-variations
+* [ ] Implementation task 10: Add validation for required variation fields
+
 ---
 
 ## USE CASE: UC-006 Open Existing Project
