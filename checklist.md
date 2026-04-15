@@ -293,9 +293,9 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Frequency: Low - used for complex scenarios
 
 * [x] Implementation task 1: Add "Add Sub-Variation" context menu item to main scenario
-* [ ] Implementation task 2: Implement sub-variation dialog with step selection
-* [ ] Implementation task 3: Add variation title input field
-* [ ] Implementation task 4: Create add sub-step functionality within variation
+* [x] Implementation task 2: Implement sub-variation dialog with step selection
+* [x] Implementation task 3: Add variation title input field
+* [x] Implementation task 4: Create add sub-step functionality within variation
 * [ ] Implementation task 5: Implement sub-step numbering and display
 * [ ] Implementation task 6: Add drag-and-drop reordering for sub-steps
 * [ ] Implementation task 7: Add visual hierarchy (indentation) for variations

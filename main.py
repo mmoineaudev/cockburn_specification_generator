@@ -294,6 +294,68 @@ class CockburnGUI(QMainWindow):
         self.extensions_preview.append(extension_text)
         self.extensions_preview.moveCursor(self.extensions_preview.textCursor().End)
         
+    def add_sub_variation(self):
+        """Open dialog to add a sub-variation with sub-step management"""
+        # Create a dialog for adding sub-variations
+        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QTextEdit, QPushButton, QDialogButtonBox
+        
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Add Sub-Variation")
+        dialog.setModal(True)
+        
+        layout = QVBoxLayout(dialog)
+        
+        # Step selection
+        step_layout = QHBoxLayout()
+        step_layout.addWidget(QLabel("Step to extend:"))
+        self.subvar_step_combo = QComboBox()
+        # For demo purposes, we'll populate with some sample steps
+        self.subvar_step_combo.addItems(["Step 1", "Step 2", "Step 3"])
+        step_layout.addWidget(self.subvar_step_combo)
+        layout.addLayout(step_layout)
+        
+        # Variation title
+        layout.addWidget(QLabel("Variation Title:"))
+        self.variation_title = QLineEdit()
+        self.variation_title.setPlaceholderText("e.g., Alternative Login Path")
+        layout.addWidget(self.variation_title)
+        
+        # Description
+        layout.addWidget(QLabel("Description (optional):"))
+        self.variation_description = QTextEdit()
+        self.variation_description.setMaximumHeight(60)
+        layout.addWidget(self.variation_description)
+        
+        # Sub-steps section
+        layout.addWidget(QLabel("Sub-steps:"))
+        self.subvar_steps_editor = QTextEdit()
+        self.subvar_steps_editor.setPlaceholderText("Enter sub-steps here (one per line)")
+        self.subvar_steps_editor.setMaximumHeight(100)
+        layout.addWidget(self.subvar_steps_editor)
+        
+        # Buttons
+        button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        button_box.accepted.connect(dialog.accept)
+        button_box.rejected.connect(dialog.reject)
+        layout.addWidget(button_box)
+        
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            # In a real implementation, this would create the sub-variation
+            step = self.subvar_step_combo.currentText()
+            title = self.variation_title.text().strip()
+            description = self.variation_description.toPlainText().strip()
+            steps = self.subvar_steps_editor.toPlainText().strip()
+            
+            # Display the sub-variation in a preview area (or add to a new tab)
+            QMessageBox.information(self, "Sub-Variation Added", f"Sub-variation added for {step}\nTitle: {title}")
+            
+            # TODO: In a real implementation, this would parse and save the sub-steps
+            if steps:
+                print(f"Sub-steps for variation '{title}':")
+                for line in steps.split('\n'):
+                    if line.strip():
+                        print(f"  - {line}")
+            
     def show_scenario_context_menu(self, position):
         """Show context menu for main scenario editor"""
         # Create the menu
