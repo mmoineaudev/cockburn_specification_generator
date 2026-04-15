@@ -568,7 +568,18 @@ class CockburnGUI(QMainWindow):
         layout.addWidget(QLabel("Condition description:"))
         self.condition_text = QTextEdit()
         self.condition_text.setMaximumHeight(80)
+        # Add character counter
+        self.condition_char_count = QLabel("0/500 characters")
         layout.addWidget(self.condition_text)
+        layout.addWidget(self.condition_char_count)
+        
+        # Connect text changed signal
+        self.condition_text.textChanged.connect(self.update_condition_char_count)
+        
+    def update_condition_char_count(self):
+        """Update the character count for condition description"""
+        text = self.condition_text.toPlainText()
+        self.condition_char_count.setText(f"{len(text)}/500 characters")
         
         # Action description
         layout.addWidget(QLabel("Action or alternative path:"))
