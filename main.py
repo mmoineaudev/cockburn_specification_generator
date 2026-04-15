@@ -587,6 +587,13 @@ class CockburnGUI(QMainWindow):
         self.action_text.setMaximumHeight(80)
         layout.addWidget(self.action_text)
         
+        # Optional use case linking
+        layout.addWidget(QLabel("Link to existing use case (optional):"))
+        self.link_combo = QComboBox()
+        # For demo purposes, we'll populate with sample use cases
+        self.link_combo.addItems(["UC-001_Create New Use Case", "UC-002_Edit Characteristic Information", "UC-003_Edit Main Success Scenario"])  
+        layout.addWidget(self.link_combo)
+        
         # Buttons
         button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         button_box.accepted.connect(dialog.accept)
