@@ -50,6 +50,11 @@ class CockburnGUI(QMainWindow):
         self.auto_save_timer.timeout.connect(self.auto_save)
         self.auto_save_timer.start(30000)  # 30 seconds
         
+        # Setup extension auto-save
+        self.extension_auto_save_timer = QTimer()
+        self.extension_auto_save_timer.timeout.connect(self.auto_save_extensions)
+        self.extension_auto_save_timer.start(30000)  # 30 seconds
+        
     def create_navigation_panel(self, parent):
         """Create the left navigation panel"""
         nav_widget = QWidget()
@@ -534,6 +539,12 @@ class CockburnGUI(QMainWindow):
         """Automatically save the project every 30 seconds"""
         self.save_project()
         self.statusBar().showMessage("Auto-saved at " + self.get_current_time())
+        
+    def auto_save_extensions(self):
+        """Automatically save extensions every 30 seconds"""
+        # In a real implementation, this would save the current extensions
+        # to the use case file or a separate extensions file
+        pass
         
     def get_current_time(self):
         """Get current time for status messages"""

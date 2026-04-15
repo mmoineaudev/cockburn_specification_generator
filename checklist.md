@@ -245,7 +245,7 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * [x] Implementation task 6: Implement use case linking functionality
 * [x] Implementation task 7: Save extensions with proper format
 * [x] Implementation task 8: Display extensions in preview pane with color coding
-* [ ] Implementation task 9: Implement auto-save for extensions
+* [x] Implementation task 9: Implement auto-save for extensions
 * [ ] Implementation task 10: Add validation for required fields
 
 ## USE CASE: UC-005 Create Sub-Variations
