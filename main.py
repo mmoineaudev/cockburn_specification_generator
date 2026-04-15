@@ -369,8 +369,10 @@ class CockburnGUI(QMainWindow):
             description = self.variation_description.toPlainText().strip()
             steps = self.subvar_steps_editor.toPlainText().strip()
             
-            # Display the sub-variation in a preview area (or add to a new tab)
-            QMessageBox.information(self, "Sub-Variation Added", f"Sub-variation added for {step}\nTitle: {title}")
+            # Display the sub-variation with proper visual hierarchy
+            self.display_variation(step, title, description, steps)
+            
+            QMessageBox.information(self, "Sub-Variation Added", f"Sub-variation '{title}' created for {step}")
             
             # TODO: In a real implementation, this would parse and save the sub-steps
             if steps:
@@ -383,16 +385,37 @@ class CockburnGUI(QMainWindow):
         """Update the formatted sub-step display with automatic numbering"""
         text = self.subvar_steps_editor.toPlainText().strip()
         
-        # Split by lines and number each step
+        # Split by lines and number each step with proper indentation
         lines = text.split('\n')
         numbered_lines = []
         
         for i, line in enumerate(lines, 1):
             if line.strip():
-                numbered_lines.append(f"  * {i}. {line}")
+                # Add indentation to show hierarchy
+                numbered_lines.append(f"    * {i}. {line}")
         
         # Update the display
         self.subvar_steps_display.setText('\n'.join(numbered_lines))
+        
+    def display_variation(self, step, title, description, steps):
+        """Display a sub-variation with proper visual hierarchy and formatting"""
+        # Format the variation header
+        variation_text = f"### Sub-Variation for {step}\n"
+        variation_text += f"**{title}**\n\n"
+        
+        if description:
+            variation_text += f"{description}\n\n"
+        
+        # Format sub-steps with proper indentation
+        if steps:
+            numbered_lines = []
+            for i, line in enumerate(steps.split('\n'), 1):
+                if line.strip():
+                    # Add 4-space indentation to show hierarchy
+                    numbered_lines.append(f"    * {i}. {line}")
+            variation_text += '\n'.join(numbered_lines)
+        
+        self.subvar_steps_display.setText(variation_text)
         
     def set_drag_and_drop(self, editor):
         """Enable drag and drop functionality for text edit"""
