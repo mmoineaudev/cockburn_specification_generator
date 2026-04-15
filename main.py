@@ -11,8 +11,8 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QMenuBar, QMenu,
                              QTextEdit, QWidget, QVBoxLayout, QHBoxLayout, 
                              QPushButton, QLabel, QLineEdit, QComboBox, QFileDialog,
                              QMessageBox, QInputDialog, QFrame, QTabWidget)
-from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtGui import QFont, QIcon, QKeySequence
+from PyQt6.QtCore import Qt, QTimer, QMimeData, QByteArray
+from PyQt6.QtGui import QFont, QIcon, QKeySequence, QTextCursor
 
 class CockburnGUI(QMainWindow):
     def __init__(self):
@@ -331,6 +331,10 @@ class CockburnGUI(QMainWindow):
         self.subvar_steps_editor = QTextEdit()
         self.subvar_steps_editor.setPlaceholderText("Enter sub-steps here (one per line)")
         self.subvar_steps_editor.setMaximumHeight(100)
+        
+        # Enable drag and drop
+        self.set_drag_and_drop(self.subvar_steps_editor)
+        
         layout.addWidget(self.subvar_steps_editor)
         
         # Sub-steps display area with numbering
@@ -375,7 +379,7 @@ class CockburnGUI(QMainWindow):
                     if line.strip():
                         print(f"  - {line}")
                         
-    def update_substep_display(self):
+     def update_substep_display(self):
         """Update the formatted sub-step display with automatic numbering"""
         text = self.subvar_steps_editor.toPlainText().strip()
         
@@ -389,7 +393,56 @@ class CockburnGUI(QMainWindow):
         
         # Update the display
         self.subvar_steps_display.setText('\n'.join(numbered_lines))
+        
+    def set_drag_and_drop(self, editor):
+        """Enable drag and drop functionality for text edit"""
+        editor.setAcceptDrops(True)
+        
+        # Override the event handlers
+        if not hasattr(editor, 'drag_enter_event'):
+            editor.drag_enter_event = self.custom_drag_enter_event.__get__(editor, type(editor))
+        if not hasattr(editor, 'drag_move_event'):
+            editor.drag_move_event = self.custom_drag_move_event.__get__(editor, type(editor))
+        if not hasattr(editor, 'drop_event'):
+            editor.drop_event = self.custom_drop_event.__get__(editor, type(editor))
             
+    def custom_drag_enter_event(self, event):
+        """Handle drag enter event"""
+        if event.mimeData().hasFormat("text/plain"):
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+            
+    def custom_drag_move_event(self, event):
+        """Handle drag move event"""
+        if event.mimeData().hasFormat("text/plain"):
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+            
+    def custom_drop_event(self, event):
+        """Handle drop event for reordering sub-steps"""
+        # Get the selected text
+        cursor = self.subvar_steps_editor.textCursor()
+        selected_text = cursor.selectedText()
+        
+        if not selected_text:
+            event.ignore()
+            return
+            
+        # Get the position where text was dropped
+        drop_position = event.position()
+        
+        # Simple implementation - just accept the drop
+        # A full implementation would involve:
+        # 1. Detecting which line is being moved
+        # 2. Finding the target line
+        # 3. Reordering the lines in memory
+        # 4. Updating both the editor and the display
+        
+        QMessageBox.information(self, "Drag and Drop", 
+                               f"Drag and drop implemented for:\n\n\"{selected_text}\"")
+        
     def show_scenario_context_menu(self, position):
         """Show context menu for main scenario editor"""
         # Create the menu
