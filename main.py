@@ -368,11 +368,20 @@ class CockburnGUI(QMainWindow):
         layout.addWidget(button_box)
         
         if dialog.exec() == QDialog.DialogCode.Accepted:
-            # In a real implementation, this would create the sub-variation
+            # Validate required fields
             step = self.subvar_step_combo.currentText()
             title = self.variation_title.text().strip()
             description = self.variation_description.toPlainText().strip()
             steps = self.subvar_steps_editor.toPlainText().strip()
+            
+            # Validate required fields
+            if not title:
+                QMessageBox.warning(dialog, "Validation Error", "Variation title is required")
+                return
+                
+            if not steps:
+                QMessageBox.warning(dialog, "Validation Error", "At least one sub-step is required")
+                return
             
             # Display the sub-variation with proper visual hierarchy
             self.display_variation(step, title, description, steps)
