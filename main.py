@@ -196,13 +196,35 @@ class CockburnGUI(QMainWindow):
         title_label.setFont(title_font)
         nav_layout.addWidget(title_label)
         
+        # Filter input box
+        filter_layout = QHBoxLayout()
+        filter_layout.addWidget(QLabel("Filter:"))
+        self.nav_filter_input = QLineEdit()
+        self.nav_filter_input.setPlaceholderText("Filter use cases...")
+        self.nav_filter_input.textChanged.connect(self.filter_navigation_tree)
+        filter_layout.addWidget(self.nav_filter_input)
+        nav_layout.addLayout(filter_layout)
+        
+        # Expand/Collapse buttons
+        expand_layout = QHBoxLayout()
+        expand_btn = QPushButton("Expand All")
+        expand_btn.clicked.connect(self.navigation_tree.expandAll)
+        expand_layout.addWidget(expand_btn)
+        collapse_btn = QPushButton("Collapse All")
+        collapse_btn.clicked.connect(self.navigation_tree.collapseAll)
+        expand_layout.addWidget(collapse_btn)
+        nav_layout.addLayout(expand_layout)
+        
         # Navigation tree
         self.navigation_tree = QTreeWidget()
-        self.navigation_tree.setHeaderLabels(["Use Cases"])
+        self.navigation_tree.setHeaderLabels(["Use Cases", "Last Modified"])
+        self.navigation_tree.setColumnCount(2)
         self.navigation_tree.itemClicked.connect(self.on_use_case_selected)
         self.navigation_tree.itemDoubleClicked.connect(self.on_use_case_double_clicked)
         self.navigation_tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.navigation_tree.customContextMenuRequested.connect(self.show_navigation_context_menu)
+        self.navigation_tree.sortByColumn(0, Qt.SortOrder.AscendingOrder)
+        self.navigation_tree.itemChanged.connect(self.on_favorite_item_changed)
         nav_layout.addWidget(self.navigation_tree)
         
         # Navigation buttons
@@ -836,20 +858,102 @@ class CockburnGUI(QMainWindow):
             return 1
             
     def update_navigation_tree(self):
-        """Update the navigation tree with current use cases"""
+        """Update the navigation tree with current use cases, showing dates and modified indicators."""
         self.navigation_tree.clear()
         
         if self.project_path:
             try:
-                markdown_dir = f"{self.project_path}/markdown"
+                markdown_dir = os.path.join(self.project_path, "markdown")
                 use_case_files = [f for f in os.listdir(markdown_dir) if f.endswith('.md')]
                 
+                # Load favorites from metadata
+                favorites = []
+                metadata_path = os.path.join(self.project_path, "metadata.json")
+                if os.path.exists(metadata_path):
+                    try:
+                        with open(metadata_path, 'r') as f:
+                            meta = json.load(f)
+                            favorites = meta.get("favorites", [])
+                    except Exception:
+                        pass
+                
                 for file in use_case_files:
-                    item = QTreeWidgetItem([file])
-                    self.navigation_tree.addTopLevelItem(item)
+                    # Get last modified date
+                    filepath = os.path.join(markdown_dir, file)
+                    mod_time = os.path.getmtime(filepath)
+                    mod_date = datetime.fromtimestamp(mod_time).strftime("%Y-%m-%d %H:%M")
                     
+                    # Check if in favorites
+                    display_name = "★ " + file if file in favorites else file
+                    
+                    item = QTreeWidgetItem([display_name, mod_date])
+                    item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
+                    item.setCheckState(0, Qt.CheckState.Unchecked)
+                    
+                    # Mark favorites with check
+                    if file in favorites:
+                        item.setCheckState(0, Qt.CheckState.Checked)
+                    
+                    self.navigation_tree.addTopLevelItem(item)
+                
+                # Sort by column 0 (name)
+                self.navigation_tree.sortByColumn(0, Qt.SortOrder.AscendingOrder)
+                
             except Exception as e:
                 print(f"Error updating navigation tree: {e}")
+    
+    def filter_navigation_tree(self):
+        """Filter navigation tree based on filter input text."""
+        filter_text = self.nav_filter_input.text().strip().lower()
+        
+        for i in range(self.navigation_tree.topLevelItemCount()):
+            item = self.navigation_tree.topLevelItem(i)
+            if not item:
+                continue
+            
+            name = item.text(0).lower()
+            
+            # Show all items if filter is empty, otherwise match
+            if filter_text == "" or filter_text in name:
+                item.setHidden(False)
+            else:
+                item.setHidden(True)
+
+    def toggle_favorite(self, item):
+        """Toggle favorite status of a use case."""
+        file_name = item.text(0).replace("★ ", "")
+        
+        if not self.project_path:
+            return
+        
+        # Load metadata
+        metadata_path = os.path.join(self.project_path, "metadata.json")
+        favorites = []
+        
+        if os.path.exists(metadata_path):
+            try:
+                with open(metadata_path, 'r') as f:
+                    meta = json.load(f)
+                    favorites = meta.get("favorites", [])
+            except Exception:
+                pass
+        
+        # Toggle
+        if item.checkState(0) == Qt.CheckState.Checked:
+            if file_name not in favorites:
+                favorites.append(file_name)
+        else:
+            favorites = [f for f in favorites if f != file_name]
+        
+        # Save metadata
+        with open(metadata_path, 'w') as f:
+            json.dump({"favorites": favorites}, f, indent=2)
+        
+        self.statusBar().showMessage(f"Favorite toggled: {file_name}")
+
+    def on_favorite_item_changed(self, item):
+        """Handle favorite checkbox change."""
+        self.toggle_favorite(item)
                 
     def on_use_case_selected(self, item):
         """Handle use case selection"""

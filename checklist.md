@@ -857,7 +857,7 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * [ ] Implementation task 7: Enable sorting by name, number, or date via column headers
 * [ ] Implementation task 8: Add filter input box for tree filtering by search text
 * [ ] Implementation task 9: Implement Expand/Collapse all buttons for tree state
-* [ ] Implementation task 10: Visually highlight current selection
+* [x] Implementation task 10: Visually highlight current selection
 
 ---
 
