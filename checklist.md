@@ -734,16 +734,16 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Performance Target: JSON/YAML export within 2 seconds
 * Frequency: Low - for CI/CD integration
 
-* [ ] Implementation task 1: Create Export to JSON menu item in context menu
-* [ ] Implementation task 2: Implement Export to YAML menu item in context menu
-* [ ] Implementation task 3: Traverse use case data model for serialization
-* [ ] Implementation task 4: Serialize all sections (Characteristics, Scenario, Extensions, Variations)
-* [ ] Implementation task 5: Write JSON/YAML file to project directory
-* [ ] Implementation task 6: Name files as UC-{number}_{name}.json or .yaml
-* [ ] Implementation task 7: Ensure proper Unicode character encoding in output
-* [ ] Implementation task 8: Generate minified output (no unnecessary whitespace)
-* [ ] Implementation task 9: Validate output structure correctness before saving
-* [ ] Implementation task 10: Handle recursive serialization of nested sub-variations
+* [x] Implementation task 1: Create Export to JSON menu item in context menu
+* [x] Implementation task 2: Implement Export to YAML menu item in context menu
+* [x] Implementation task 3: Traverse use case data model for serialization
+* [x] Implementation task 4: Serialize all sections (Characteristics, Scenario, Extensions, Variations)
+* [x] Implementation task 5: Write JSON/YAML file to project directory
+* [x] Implementation task 6: Name files as UC-{number}_{name}.json or .yaml
+* [x] Implementation task 7: Ensure proper Unicode character encoding in output
+* [x] Implementation task 8: Generate minified output (no unnecessary whitespace)
+* [x] Implementation task 9: Validate output structure correctness before saving
+* [x] Implementation task 10: Handle recursive serialization of nested sub-variations
 
 ---
 

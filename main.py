@@ -1400,6 +1400,10 @@ class CockburnGUI(QMainWindow):
         export_json_action.triggered.connect(lambda: self.export_selected_to_json())
         menu.addAction(export_json_action)
         
+        export_yaml_action = QAction("Export to YAML", self)
+        export_yaml_action.triggered.connect(lambda: self.export_selected_to_yaml())
+        menu.addAction(export_yaml_action)
+        
         menu.addSeparator()
         
         # Edit options
@@ -1573,11 +1577,139 @@ class CockburnGUI(QMainWindow):
             with open(json_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
             
+            # Validate output structure
+            try:
+                with open(json_path, "r", encoding="utf-8") as f:
+                    validated = json.load(f)
+                assert "use_case_id" in validated
+                assert "characteristics" in validated
+                assert "main_success_scenario" in validated
+            except (json.JSONDecodeError, AssertionError) as e:
+                QMessageBox.warning(self, "Validation Error", 
+                    f"JSON structure validation warning: {e}")
+            
             self.statusBar().showMessage(f"Exported to JSON: {json_filename} at {self.get_current_time()}")
             QMessageBox.information(self, "Export Complete", 
                 f"Use case exported to JSON:\n{json_path}")
         except Exception as e:
             QMessageBox.critical(self, "Export Error", f"Failed to export to JSON:\n{e}")
+
+    def export_to_yaml(self):
+        """Export current use case to YAML format with full structure."""
+        if not self.current_use_case:
+            QMessageBox.warning(self, "Export Error", "No use case selected.")
+            return
+        
+        self.save_current_use_case()
+        
+        yaml_dir = os.path.join(self.project_path, "yaml")
+        os.makedirs(yaml_dir, exist_ok=True)
+        
+        match = re.match(r'UC-(\d+)_?(.*)', self.current_use_case)
+        if match:
+            uc_num = match.group(1)
+            uc_name = match.group(2).replace('_', ' ')
+            yaml_filename = f"UC-{uc_num}_{uc_name}.yaml"
+        else:
+            yaml_filename = f"{self.current_use_case}.yaml"
+        
+        yaml_path = os.path.join(yaml_dir, yaml_filename)
+        
+        try:
+            # Build structured YAML data (same as JSON for consistency)
+            data = {
+                "use_case_id": self.current_use_case,
+                "characteristics": {
+                    "goal_in_context": self.goal_input.toPlainText().strip(),
+                    "scope": self.scope_input.toPlainText().strip(),
+                    "level": self.level_combo.currentText(),
+                    "preconditions": self.preconditions_input.toPlainText().strip(),
+                    "success_condition": self.success_input.toPlainText().strip(),
+                    "failed_condition": self.failed_input.toPlainText().strip(),
+                    "primary_actor": self.actor_input.text().strip(),
+                    "trigger": self.trigger_input.text().strip(),
+                },
+                "main_success_scenario": [
+                    step.strip() for step in self.scenario_editor.toPlainText().split('\n')
+                    if step.strip()
+                ],
+                "extensions": [
+                    line.strip() for line in self.extensions_preview.toPlainText().split('\n')
+                    if line.strip()
+                ],
+                "sub_variations": self.subvariations_editor.toPlainText().strip(),
+                "metadata": {
+                    "exported_at": datetime.now().isoformat(),
+                    "format_version": "2.0",
+                }
+            }
+            
+            # Write YAML manually (no pyyaml dependency needed)
+            yaml_content = self._serialize_yaml(data)
+            
+            with open(yaml_path, "w", encoding="utf-8") as f:
+                f.write(yaml_content)
+            
+            # Validate by reading back
+            try:
+                with open(yaml_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+                assert "use_case_id:" in content or "use_case_id" in content
+            except AssertionError:
+                QMessageBox.warning(self, "Validation Error", "YAML validation warning")
+            
+            self.statusBar().showMessage(f"Exported to YAML: {yaml_filename} at {self.get_current_time()}")
+            QMessageBox.information(self, "Export Complete", 
+                f"Use case exported to YAML:\n{yaml_path}")
+        except Exception as e:
+            QMessageBox.critical(self, "Export Error", f"Failed to export to YAML:\n{e}")
+
+    def _serialize_yaml(self, data: dict, indent: int = 0) -> str:
+        """Recursively serialize a dict to YAML string (no external dependencies)."""
+        lines = []
+        prefix = "  " * indent
+        
+        for key, value in data.items():
+            if isinstance(value, dict):
+                lines.append(f"{prefix}{key}:")
+                lines.append(self._serialize_yaml(value, indent + 1))
+            elif isinstance(value, list):
+                lines.append(f"{prefix}{key}:")
+                if not value:
+                    lines.append(f"{prefix}  []")
+                else:
+                    for item in value:
+                        if isinstance(item, dict):
+                            # Inline first key-value
+                            items = list(item.items())
+                            if items:
+                                k, v = items[0]
+                                lines.append(f"{prefix}- {k}: {self._yaml_value(v)}")
+                                for k2, v2 in items[1:]:
+                                    lines.append(f"{prefix}  {k2}: {self._yaml_value(v2)}")
+                        else:
+                            lines.append(f"{prefix}- {self._yaml_value(item)}")
+            elif isinstance(value, str):
+                # Quote strings to handle special chars and Unicode properly
+                escaped = value.replace('"', '\\"')
+                lines.append(f"{prefix}{key}: \"{escaped}\"")
+            else:
+                lines.append(f"{prefix}{key}: {self._yaml_value(value)}")
+        
+        return "\n".join(lines)
+
+    def _yaml_value(self, value):
+        """Format a YAML scalar value."""
+        if isinstance(value, str):
+            escaped = value.replace('"', '\\"')
+            return f'"{escaped}"'
+        elif isinstance(value, bool):
+            return "yes" if value else "no"
+        elif isinstance(value, (int, float)):
+            return str(value)
+        elif value is None:
+            return "null"
+        return str(value)
 
     def add_extension(self):
         """Add a new extension to the current use case"""
