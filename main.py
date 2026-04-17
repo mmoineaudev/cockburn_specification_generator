@@ -643,47 +643,9 @@ class CockburnGUI(QMainWindow):
         
         return DropFilter(editor)
 
-    def custom_drag_enter_event(self, event):
-        """Handle drag enter event"""
-        if event.mimeData().hasFormat("text/plain"):
-            event.acceptProposedAction()
-        else:
-            event.ignore()
-            
-    def custom_drag_move_event(self, event):
-        """Handle drag move event"""
-        if event.mimeData().hasFormat("text/plain"):
-            event.acceptProposedAction()
-        else:
-            event.ignore()
-    
-    def custom_drop_event(self, event):
-        """Handle drop event for reordering sub-steps.
-        
-        Note: For QTextEdit widgets, use set_drag_and_drop() which installs
-        an event filter instead of overriding dropEvent directly.
-        """
-        # Get the selected text
-        cursor = self.subvar_steps_editor.textCursor()
-        selected_text = cursor.selectedText()
-        
-        if not selected_text:
-            event.ignore()
-            return
-            
-        # Get the position where text was dropped (Qt6 uses .pos(), not .position())
-        drop_pos = event.pos()
-        
-        # Simple implementation - just accept the drop
-        # A full implementation would involve:
-        # 1. Detecting which line is being moved
-        # 2. Finding the target line
-        # 3. Reordering the lines in memory
-        # 4. Updating both the editor and the display
-        
-        QMessageBox.information(self, "Drag and Drop", 
-                               f"Drag and drop implemented for:\n\n\"{selected_text}\"")
-        
+
+
+
     def show_scenario_context_menu(self, position):
         """Show context menu for main scenario editor"""
         # Create the menu
