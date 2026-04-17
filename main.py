@@ -22,9 +22,121 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QMenuBar, QMenu,
                              QPushButton, QLabel, QLineEdit, QComboBox, QFileDialog,
                              QMessageBox, QInputDialog, QFrame, QTabWidget, QDialog,
                              QDialogButtonBox, QHeaderView, QAbstractItemView,
-                             QProgressBar, QToolBar, QCheckBox, QSpinBox, QDoubleSpinBox)
+                             QProgressBar, QToolBar, QCheckBox, QSpinBox, QDoubleSpinBox,
+                             QProgressDialog, QGroupBox, QRadioButton)
 from PyQt6.QtCore import Qt, QTimer, QMimeData, QByteArray, QThread, pyqtSignal, QEvent, QObject
 from PyQt6.QtGui import QFont, QIcon, QKeySequence, QTextCursor
+
+
+class BatchExportWorker(QThread):
+    """Worker thread for batch exporting use cases to Word without freezing the GUI."""
+    
+    progress_signal = pyqtSignal(str, float)  # message, percentage
+    finished_signal = pyqtSignal(int, int)  # success_count, fail_count
+    cancelled_signal = pyqtSignal()
+    
+    def __init__(self, project_path, use_case_files, skip_existing=False):
+        super().__init__()
+        self.project_path = project_path
+        self.use_case_files = use_case_files
+        self.skip_existing = skip_existing
+        self._cancelled = False
+    
+    def run(self):
+        """Run the batch export in background."""
+        total = len(self.use_case_files)
+        success_count = 0
+        fail_count = 0
+        
+        for i, uc_file in enumerate(self.use_case_files):
+            if self._cancelled:
+                self.finished_signal.emit(success_count, fail_count)
+                return
+            
+            # Check if file already exists (skip logic)
+            word_dir = os.path.join(self.project_path, "word")
+            match = re.match(r'UC-(\d+)_?(.*)', uc_file)
+            if match:
+                uc_num = match.group(1)
+                uc_name = match.group(2).replace('_', ' ')
+                word_filename = f"UC-{uc_num}_{uc_name}.docx"
+            else:
+                word_filename = f"{uc_file}.docx"
+            
+            word_path = os.path.join(word_dir, word_filename)
+            
+            if self.skip_existing and os.path.exists(word_path):
+                continue
+            
+            # Export using python-docx
+            try:
+                self._export_single_word(uc_file, word_path)
+                success_count += 1
+            except Exception as e:
+                fail_count += 1
+            
+            # Emit progress update
+            pct = ((i + 1) / total) * 100 if total > 0 else 100
+            self.progress_signal.emit(f"Processing {uc_file} ({i+1}/{total})", pct)
+        
+        self.finished_signal.emit(success_count, fail_count)
+    
+    def _export_single_word(self, use_case_file: str, output_path: str):
+        """Export a single use case to Word format."""
+        from docx import Document
+        from docx.shared import Pt
+        
+        try:
+            # Read the markdown file
+            md_path = os.path.join(self.project_path, "markdown", use_case_file)
+            if not os.path.exists(md_path):
+                raise FileNotFoundError(f"Markdown file not found: {md_path}")
+            
+            with open(md_path, "r", encoding="utf-8") as f:
+                content = f.read()
+            
+            doc = Document()
+            style = doc.styles['Normal']
+            font = style.font
+            font.name = 'Calibri'
+            font.size = Pt(11)
+            
+            # Title
+            doc.add_heading(use_case_file.replace('_', ' '), level=0)
+            
+            # Parse sections from markdown
+            for heading in ["Characteristic Information", "Main Success Scenario", 
+                          "Extensions", "Sub-Variations"]:
+                m = re.search(rf'## {re.escape(heading)}\s*\n(.*?)(?=##|$)', content, re.DOTALL)
+                if m:
+                    section_text = m.group(1).strip()
+                    if heading == "Characteristic Information":
+                        doc.add_heading("Characteristic Information", level=1)
+                        for line in section_text.split('\n'):
+                            line = line.strip()
+                            if line.startswith('* '):
+                                parts = line[2:].split(':', 1)
+                                if len(parts) == 2:
+                                    p = doc.add_paragraph()
+                                    run = p.add_run(f"{parts[0].strip()}: ")
+                                    run.bold = True
+                                    p.add_run(parts[1].strip())
+                    else:
+                        doc.add_heading(heading, level=1)
+                        for line in section_text.split('\n'):
+                            line = line.strip()
+                            if line:
+                                doc.add_paragraph(line, style='List Bullet' if heading == "Extensions" else 'Normal')
+            
+            doc.add_paragraph(f"\nExported on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            doc.save(output_path)
+        except Exception as e:
+            raise
+    
+    def cancel(self):
+        """Signal cancellation."""
+        self._cancelled = True
+
 
 class CockburnGUI(QMainWindow):
     def __init__(self):
@@ -567,9 +679,18 @@ class CockburnGUI(QMainWindow):
         export_word_action.triggered.connect(self.export_to_word)
         tools_menu.addAction(export_word_action)
         
+        export_all_word_action = QAction("Export All to Word", self)
+        export_all_word_action.setShortcut(QKeySequence("Ctrl+Shift+E"))
+        export_all_word_action.triggered.connect(self.export_all_to_word)
+        tools_menu.addAction(export_all_word_action)
+        
         export_pdf_action = QAction("Export to PDF", self)
         export_pdf_action.triggered.connect(self.export_to_pdf)
         tools_menu.addAction(export_pdf_action)
+        
+        export_json_action = QAction("Export to JSON", self)
+        export_json_action.triggered.connect(self.export_to_json)
+        tools_menu.addAction(export_json_action)
         
         # Help menu
         help_menu = menubar.addMenu("Help")
@@ -1500,6 +1621,118 @@ class CockburnGUI(QMainWindow):
         if hasattr(self, 'condition_text') and hasattr(self, 'condition_char_count'):
             text = self.condition_text.toPlainText()
             self.condition_char_count.setText(f"{len(text)}/500 characters")
+
+    def export_all_to_word(self):
+        """Batch export all use cases to Word format with progress dialog."""
+        if not self.project_path:
+            QMessageBox.warning(self, "No Project", "Please open a project first.")
+            return
+        
+        # Collect all use case files
+        markdown_dir = os.path.join(self.project_path, "markdown")
+        if not os.path.exists(markdown_dir):
+            QMessageBox.warning(self, "No Use Cases", "No markdown directory found in project.")
+            return
+        
+        use_case_files = [f for f in os.listdir(markdown_dir) if f.endswith('.md')]
+        if not use_case_files:
+            QMessageBox.information(self, "No Use Cases", "No use cases found to export.")
+            return
+        
+        # Create the batch export dialog
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Export All to Word")
+        dialog.setModal(True)
+        dialog.setMinimumWidth(400)
+        
+        layout = QVBoxLayout(dialog)
+        
+        # Info label
+        info_label = QLabel(f"Found {len(use_case_files)} use case(s) to export.")
+        layout.addWidget(info_label)
+        
+        # Options group
+        options_group = QGroupBox("Options")
+        options_layout = QVBoxLayout(options_group)
+        
+        self.batch_skip_existing = QCheckBox("Skip already converted files")
+        self.batch_skip_existing.setChecked(True)
+        options_layout.addWidget(self.batch_skip_existing)
+        
+        self.batch_auto_open = QCheckBox("Auto-open Word folder after export")
+        options_layout.addWidget(self.batch_auto_open)
+        
+        layout.addWidget(options_group)
+        
+        # Buttons
+        button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        ok_btn = button_box.button(QDialogButtonBox.StandardButton.Ok)
+        cancel_btn = button_box.button(QDialogButtonBox.StandardButton.Cancel)
+        layout.addWidget(button_box)
+        
+        if not dialog.exec():
+            return  # User cancelled
+        
+        skip_existing = self.batch_skip_existing.isChecked()
+        
+        # Start batch export in background thread
+        self.statusBar().showMessage("Starting batch export...")
+        self.progress_dialog = QProgressDialog("Exporting use cases...", "Cancel", 0, len(use_case_files), self)
+        self.progress_dialog.setWindowTitle("Batch Export")
+        self.progress_dialog.setWindowModality(Qt.WindowModality.WindowModal)
+        self.progress_dialog.setMinimumDuration(0)
+        self.progress_dialog.valueChanged.connect(lambda v: self.statusBar().showMessage(f"Exporting... ({v}/{len(use_case_files)})"))
+        
+        # Create worker thread
+        self.batch_worker = BatchExportWorker(self.project_path, use_case_files, skip_existing=skip_existing)
+        self.batch_worker.progress_signal.connect(self._batch_progress_update)
+        self.batch_worker.finished_signal.connect(self._batch_export_finished)
+        
+        def on_cancelled():
+            if hasattr(self, 'batch_worker'):
+                self.batch_worker.cancel()
+            self.progress_dialog.close()
+        
+        cancel_btn.clicked.connect(on_cancelled)
+        
+        # Start the worker
+        self.batch_worker.start()
+        
+        # Keep dialog open but non-blocking
+        dialog.accept()
+
+    def _batch_progress_update(self, message: str, pct: float):
+        """Update progress during batch export."""
+        if hasattr(self, 'progress_dialog'):
+            self.progress_dialog.setValue(int(pct))
+            self.progress_dialog.setLabelText(message)
+        self.statusBar().showMessage(message)
+
+    def _batch_export_finished(self, success_count: int, fail_count: int):
+        """Handle completion of batch export."""
+        if hasattr(self, 'progress_dialog'):
+            self.progress_dialog.close()
+        
+        msg = f"Export complete!\n\n✓ {success_count} exported successfully"
+        if fail_count > 0:
+            msg += f"\n✗ {fail_count} failed"
+        QMessageBox.information(self, "Batch Export Complete", msg)
+        
+        self.statusBar().showMessage(f"Batch export finished: {success_count} success, {fail_count} failed")
+        
+        # Auto-open folder if requested
+        if hasattr(self, 'batch_auto_open') and self.batch_auto_open.isChecked():
+            word_dir = os.path.join(self.project_path, "word")
+            if os.path.exists(word_dir):
+                try:
+                    if sys.platform == 'win32':
+                        os.startfile(word_dir)
+                    elif sys.platform == 'darwin':
+                        os.system(f'open "{word_dir}"')
+                    else:
+                        os.system(f'xdg-open "{word_dir}"')
+                except Exception as e:
+                    QMessageBox.warning(self, "Open Folder Error", f"Could not open folder: {e}")
 
     def show_about(self):
         """Show about dialog"""

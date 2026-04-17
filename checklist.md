@@ -511,7 +511,7 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Performance Target: Export all use cases at 3 per second rate
 * Frequency: Low - before major project milestones
 
-* [ ] Implementation task 1: Create batch export menu item (Tools → Export All to Word)
+* [x] Implementation task 1: Create batch export menu item (Tools → Export All to Word)
 * [ ] Implementation task 2: Implement progress dialog with percentage display
 * [ ] Implementation task 3: Iterate through all use cases sequentially
 * [ ] Implementation task 4: Export each use case to individual .docx file
