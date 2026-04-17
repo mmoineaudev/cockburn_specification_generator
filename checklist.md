@@ -511,6 +511,17 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Performance Target: Export all use cases at 3 per second rate
 * Frequency: Low - before major project milestones
 
+* [x] Implementation task 1: Create batch export menu item (Tools → Export All to Word)
+* [x] Implementation task 2: Implement progress dialog with percentage display
+* [x] Implementation task 3: Iterate through all use cases sequentially
+* [x] Implementation task 4: Export each use case to individual .docx file
+* [x] Implementation task 5: Track successful and failed exports in log
+* [x] Implementation task 6: Add skip-already-converted option with force reconvert toggle
+* [x] Implementation task 7: Run background processing without freezing GUI
+* [x] Implementation task 8: Show summary dialog with success/failure count
+* [x] Implementation task 9: Add optional auto-open of generated Word folder
+* [x] Implementation task 10: Handle graceful cancellation mid-export
+
 ---
 
 ## USE CASE: UC-010 Export to PDF
@@ -555,6 +566,17 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Priority: Medium
 * Performance Target: PDF generation within 15 seconds per use case
 * Frequency: Low - before external distribution
+
+* [x] Implementation task 1: Create export to PDF functionality (right-click context menu)
+* [x] Implementation task 2: Implement Pandoc/pdfkit integration for Markdown-to-PDF conversion
+* [x] Implementation task 3: Apply page settings (A4/Letter selection, 1-inch margins)
+* [x] Implementation task 4: Add page numbering in top-right corner
+* [x] Implementation task 5: Embed document properties in PDF metadata
+* [x] Implementation task 6: Ensure Unicode character embedding
+* [x] Implementation task 7: Save PDF to project directory as UC-{number}_{name}.pdf
+* [x] Implementation task 8: Show confirmation toast with file location
+* [x] Implementation task 9: Add page size selection in preferences
+* [x] Implementation task 10: Bundle optional font files for special font requirements
 
 ---
 
@@ -601,6 +623,17 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Performance Target: Template import within 2 seconds
 * Frequency: Low - initial setup and updates
 
+* [x] Implementation task 1: Create File → Import Template menu item
+* [x] Implementation task 2: Implement file dialog filtering .md and .json templates
+* [x] Implementation task 3: Add template structure validation for required fields
+* [x] Implementation task 4: Create preview dialog showing template with placeholders
+* [x] Implementation task 5: Allow editing of template name and description
+* [x] Implementation task 6: Store imported templates in local template directory
+* [x] Implementation task 7: Add imported templates to New Use Case dialog dropdown
+* [x] Implementation task 8: Extract and store template metadata (author, version)
+* [x] Implementation task 9: Show confirmation message on successful import
+* [x] Implementation task 10: Handle duplicate name conflicts with replace/rename options
+
 ---
 
 ## USE CASE: UC-012 Git Integration
@@ -646,6 +679,17 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Performance Target: Git operations complete within 500ms
 * Frequency: Medium - per project save
 
+* [x] Implementation task 1: Detect Git installation on system
+* [x] Implementation task 2: Initialize .git repository for new projects
+* [x] Implementation task 3: Create .gitignore excluding .docx and temporary files
+* [x] Implementation task 4: Generate default README.md with project info
+* [x] Implementation task 5: Add Git status indicator in toolbar (green=clean, yellow=modified)
+* [x] Implementation task 6: Implement auto-commit after each save with timestamp message
+* [x] Implementation task 7: Create "View Git Log" dialog for commit history
+* [x] Implementation task 8: Add branch creation and switching via toolbar dropdown
+* [x] Implementation task 9: Display commit count in project title bar
+* [x] Implementation task 10: Implement manual "Commit All Changes" button with custom message
+
 ---
 
 ## USE CASE: UC-013 Export to JSON/YAML
@@ -689,6 +733,17 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Priority: Low
 * Performance Target: JSON/YAML export within 2 seconds
 * Frequency: Low - for CI/CD integration
+
+* [x] Implementation task 1: Create Export to JSON menu item in context menu
+* [x] Implementation task 2: Implement Export to YAML menu item in context menu
+* [x] Implementation task 3: Traverse use case data model for serialization
+* [x] Implementation task 4: Serialize all sections (Characteristics, Scenario, Extensions, Variations)
+* [x] Implementation task 5: Write JSON/YAML file to project directory
+* [x] Implementation task 6: Name files as UC-{number}_{name}.json or .yaml
+* [x] Implementation task 7: Ensure proper Unicode character encoding in output
+* [x] Implementation task 8: Generate minified output (no unnecessary whitespace)
+* [x] Implementation task 9: Validate output structure correctness before saving
+* [x] Implementation task 10: Handle recursive serialization of nested sub-variations
 
 ---
 
@@ -736,6 +791,17 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Performance Target: Search completes within 500ms for 100 use cases
 * Frequency: High - regular navigation activity
 
+* [x] Implementation task 1: Create Ctrl+F shortcut to open search dialog
+* [x] Implementation task 2: Implement floating search dialog above editor
+* [x] Implementation task 3: Add text input for search term entry
+* [x] Implementation task 4: Perform case-insensitive search across all fields
+* [x] Implementation task 5: Display results window with context snippets
+* [x] Implementation task 6: Show result count (e.g., "3 matches in 2 use cases")
+* [x] Implementation task 7: Enable clicking on result to open use case and scroll to match
+* [x] Implementation task 8: Add Next/Previous buttons for navigating between results
+* [x] Implementation task 9: Highlight matching text in editor
+* [x] Implementation task 10: Close search dialog with Esc key
+
 ---
 
 ## USE CASE: UC-015 Use Case Navigation Tree
@@ -782,6 +848,17 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Performance Target: Tree updates instantaneously on change
 * Frequency: Very High - primary navigation mechanism
 
+* [x] Implementation task 1: Populate navigation tree with all use cases in project
+* [x] Implementation task 2: Display use case number, name, and last modified date
+* [x] Implementation task 3: Show asterisk (*) indicator for modified files
+* [x] Implementation task 4: Implement click to select and open editor
+* [x] Implementation task 5: Add double-click to open use case in editor pane
+* [x] Implementation task 6: Create right-click context menu with actions
+* [x] Implementation task 7: Enable sorting by name, number, or date via column headers
+* [x] Implementation task 8: Add filter input box for tree filtering by search text
+* [x] Implementation task 9: Implement Expand/Collapse all buttons for tree state
+* [x] Implementation task 10: Visually highlight current selection
+
 ---
 
 ## USE CASE: UC-016 Bookmark Favorites
@@ -825,6 +902,17 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Priority: Low
 * Performance Target: Favorite operations complete within 500ms
 * Frequency: Low - initial organization
+
+* [x] Implementation task 1: Create right-click context menu in navigation tree
+* [x] Implementation task 2: Add "Add to Favorites" option to context menu
+* [x] Implementation task 3: Implement favorite storage in project metadata.json
+* [x] Implementation task 4: Display favorites in dedicated section or pinned at top
+* [x] Implementation task 5: Make favorites collapsible/expandable section
+* [x] Implementation task 6: Show unsaved changes indicator on favorite items
+* [x] Implementation task 7: Add "Remove from Favorites" option via right-click
+* [x] Implementation task 8: Persist favorites across project sessions
+* [x] Implementation task 9: Preserve order of multiple favorites
+* [x] Implementation task 10: Implement bulk actions (export favorites only)
 
 ---
 
@@ -870,6 +958,17 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Priority: Medium
 * Performance Target: Preview update within 300ms of edit
 * Frequency: High - during editing sessions
+
+* [x] Implementation task 1: Create toolbar toggle button for preview pane visibility (Alt+P)
+* [x] Implementation task 2: Implement right pane with rendered Markdown content display
+* [x] Implementation task 3: Add live update within 300ms of editor changes
+* [x] Implementation task 4: Display formatting indicators (# for heading, ** for bold)
+* [x] Implementation task 5: Render headings, lists, code blocks, and tables properly
+* [x] Implementation task 6: Make links clickable and functional in preview
+* [x] Implementation task 7: Add toggle button to switch between preview/edit modes
+* [x] Implementation task 8: Implement sync scrolling option for synchronized vertical scroll
+* [x] Implementation task 9: Add zoom controls (50%, 100%, 150%, 200%)
+* [x] Implementation task 10: Provide print view option
 
 ---
 
@@ -970,6 +1069,17 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Performance Target: Preferences dialog loads within 1 second
 * Frequency: Low - initial setup and occasional changes
 
+* [x] Implementation task 1: Create Tools → Preferences menu item
+* [x] Implementation task 2: Implement preferences dialog with General tab active by default
+* [x] Implementation task 3: Add multiple tabs (General, Editor, Templates, Export, Interface)
+* [x] Implementation task 4: Implement preference modification via dropdowns, checkboxes, inputs
+* [x] Implementation task 5: Add real-time preview of changes before applying
+* [x] Implementation task 6: Create Apply button to test changes without restart
+* [x] Implementation task 7: Apply all changes immediately without requiring restart
+* [x] Implementation task 8: Implement Reset to Defaults button for original values
+* [x] Implementation task 9: Add preferences export/import for backup functionality
+* [x] Implementation task 10: Set default preferences on first run
+
 ---
 
 ## USE CASE: UC-020 Keyboard Shortcuts
@@ -1015,6 +1125,17 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Performance Target: Shortcut dialog loads within 500ms
 * Frequency: Medium - for power users
 
+* [x] Implementation task 1: Create Help → Keyboard Shortcuts menu item (F1)
+* [x] Implementation task 2: Implement keyboard shortcuts dialog showing all available shortcuts
+* [x] Implementation task 3: Categorize shortcuts by action (File, Edit, View, Tools)
+* [x] Implementation task 4: Add search/filter functionality in dialog
+* [x] Implementation task 5: Enable copy of all shortcuts to clipboard
+* [x] Implementation task 6: Display shortcuts with current bindings
+* [x] Implementation task 7: Implement standard shortcuts (Ctrl+S, Ctrl+O, etc.)
+* [x] Implementation task 8: Allow custom shortcut configuration via Preferences
+* [x] Implementation task 9: Add conflict detection for duplicate bindings
+* [x] Implementation task 10: Provide Reset to defaults option
+
 ---
 
 ## USE CASE: UC-021 Help System
@@ -1058,6 +1179,17 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Priority: Medium
 * Performance Target: Help loads within 1 second
 * Frequency: Low - for new users and reference
+
+* [x] Implementation task 1: Create Help → User Guide menu item (F1)
+* [x] Implementation task 2: Implement help viewer with built-in documentation
+* [x] Implementation task 3: Include Getting Started, Feature Descriptions, and Tutorials
+* [x] Implementation task 4: Add search box for searching across entire help system
+* [x] Implementation task 5: Implement context-sensitive help on dialogs (F1)
+* [x] Implementation task 6: Display navigation with table of contents
+* [x] Implementation task 7: Format help content in Markdown or HTML
+* [x] Implementation task 8: Make links to external documentation functional
+* [x] Implementation task 9: Localize help content (English, French)
+* [x] Implementation task 10: Allow opening help in external browser
 
 ---
 
@@ -1103,6 +1235,17 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Performance Target: Startup <3 seconds; project load <2 seconds
 * Frequency: High - at application launch
 
+* [x] Implementation task 1: Optimize application startup to complete within 3 seconds
+* [x] Implementation task 2: Implement splash screen during initialization
+* [x] Implementation task 3: Load configuration and preferences efficiently
+* [x] Implementation task 4: Initialize UI framework (PyQt6) with lazy loading
+* [x] Implementation task 5: Render main window quickly after initialization
+* [x] Implementation task 6: Optimize project loading (<2 seconds for typical projects)
+* [x] Implementation task 7: Restore last opened position on startup
+* [x] Implementation task 8: Ensure application is ready for use within 3 seconds
+* [x] Implementation task 9: Run background tasks without blocking UI
+* [x] Implementation task 10: Log startup time for performance monitoring
+
 ---
 
 ## USE CASE: UC-023 Usability - Learnability
@@ -1146,6 +1289,17 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Priority: High
 * Performance Target: First use case completed within 10 minutes
 * Frequency: Very Low - one-time per user
+
+* [x] Implementation task 1: Create welcome dialog on first launch
+* [x] Implementation task 2: Display tutorial link prominently in UI
+* [x] Implementation task 3: Add "Create First Use Case" button for guided creation
+* [x] Implementation task 4: Implement guided walkthrough through use case creation steps
+* [x] Implementation task 5: Add inline help tooltips explaining each field
+* [x] Implementation task 6: Allow user to enter minimal required information easily
+* [x] Implementation task 7: Show validation warnings that guide corrections
+* [x] Implementation task 8: Enable successful generation of first specification
+* [x] Implementation task 9: Support exporting to Word and verifying format
+* [x] Implementation task 10: Display success message confirming completion
 
 ---
 
