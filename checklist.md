@@ -1069,16 +1069,16 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Performance Target: Preferences dialog loads within 1 second
 * Frequency: Low - initial setup and occasional changes
 
-* [ ] Implementation task 1: Create Tools → Preferences menu item
-* [ ] Implementation task 2: Implement preferences dialog with General tab active by default
-* [ ] Implementation task 3: Add multiple tabs (General, Editor, Templates, Export, Interface)
-* [ ] Implementation task 4: Implement preference modification via dropdowns, checkboxes, inputs
-* [ ] Implementation task 5: Add real-time preview of changes before applying
-* [ ] Implementation task 6: Create Apply button to test changes without restart
-* [ ] Implementation task 7: Apply all changes immediately without requiring restart
-* [ ] Implementation task 8: Implement Reset to Defaults button for original values
-* [ ] Implementation task 9: Add preferences export/import for backup functionality
-* [ ] Implementation task 10: Set default preferences on first run
+* [x] Implementation task 1: Create Tools → Preferences menu item
+* [x] Implementation task 2: Implement preferences dialog with General tab active by default
+* [x] Implementation task 3: Add multiple tabs (General, Editor, Templates, Export, Interface)
+* [x] Implementation task 4: Implement preference modification via dropdowns, checkboxes, inputs
+* [x] Implementation task 5: Add real-time preview of changes before applying
+* [x] Implementation task 6: Create Apply button to test changes without restart
+* [x] Implementation task 7: Apply all changes immediately without requiring restart
+* [x] Implementation task 8: Implement Reset to Defaults button for original values
+* [x] Implementation task 9: Add preferences export/import for backup functionality
+* [x] Implementation task 10: Set default preferences on first run
 
 ---
 

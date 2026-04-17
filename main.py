@@ -724,7 +724,17 @@ class CockburnGUI(QMainWindow):
         save_as_action.setShortcut(QKeySequence.StandardKey.SaveAs)
         save_as_action.triggered.connect(self.save_project_as)
         file_menu.addAction(save_as_action)
-
+        
+        # Export/Import project
+        export_project_action = QAction("Export Project", self)
+        export_project_action.triggered.connect(self.export_project)
+        file_menu.addAction(export_project_action)
+        
+        import_project_action = QAction("Import Project", self)
+        import_project_action.triggered.connect(self.import_project)
+        file_menu.addAction(import_project_action)
+        
+        
         file_menu.addSeparator()
 
         exit_action = QAction("Exit", self)
@@ -2846,6 +2856,142 @@ class CockburnGUI(QMainWindow):
         layout.addWidget(close_btn)
         
         dialog.exec()
+
+
+    def export_project(self):
+        """Export the entire project as a .zip archive with all use cases and metadata."""
+        if not self.project_path:
+            QMessageBox.warning(self, "No Project", "Please open a project first.")
+            return
+
+        # Show save dialog
+        zip_path, _ = QFileDialog.getSaveFileName(
+            self, 
+            "Export Project", 
+            "", 
+            "Cockburn Project (*.zip)"
+        )
+
+        if not zip_path:
+            return
+
+        try:
+            with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+                # Add all markdown files
+                md_dir = os.path.join(self.project_path, "markdown")
+                for filename in os.listdir(md_dir):
+                    if filename.endswith(".md"):
+                        file_path = os.path.join(md_dir, filename)
+                        arc_name = f"markdown/{filename}"
+                        zf.write(file_path, arc_name)
+
+                # Add metadata file
+                metadata_path = os.path.join(self.project_path, "metadata.json")
+                if os.path.exists(metadata_path):
+                    zf.write(metadata_path, "metadata.json")
+
+                # Add version info
+                import_version = {
+                    "version": "2.0",
+                    "exported_at": datetime.now().isoformat(),
+                    "project_path": self.project_path,
+                    "use_case_count": len([f for f in os.listdir(md_dir) if f.endswith(".md")])
+                }
+                zf.writestr("version.json", json.dumps(import_version, indent=2))
+
+            QMessageBox.information(self, "Export Complete", 
+                f"Project exported successfully to:\n{zip_path}")
+            self.statusBar().showMessage(f"Project exported: {os.path.basename(zip_path)}")
+
+        except Exception as e:
+            QMessageBox.critical(self, "Export Error", f"Failed to export project:\n{e}")
+
+    def import_project(self):
+        """Import a project from a .zip archive."""
+        # Show open dialog
+        zip_file, _ = QFileDialog.getOpenFileName(
+            self, 
+            "Import Project", 
+            "", 
+            "Cockburn Project (*.zip)"
+        )
+
+        if not zip_file:
+            return
+
+        try:
+            # Validate it's a valid Cockburn project
+            with zipfile.ZipFile(zip_file, "r") as zf:
+                # Check for required files
+                file_list = zf.namelist()
+                md_files = [f for f in file_list if f.startswith("markdown/") and f.endswith(".md")]
+
+                if not md_files:
+                    QMessageBox.warning(self, "Invalid Project", 
+                        "The selected file does not appear to be a valid Cockburn project.\n"
+                        "Expected markdown/ directory with .md files.")
+                    return
+
+                # Create temporary directory for extraction
+                import_dir = os.path.join(self.project_path or ".", f"_import_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
+                os.makedirs(import_dir, exist_ok=True)
+
+                # Extract all files
+                zf.extractall(import_dir)
+
+                # Show preview dialog
+                dialog = QDialog(self)
+                dialog.setWindowTitle("Import Project Preview")
+                dialog.setModal(True)
+                dialog.setMinimumWidth(400)
+
+                layout = QVBoxLayout(dialog)
+
+                info_label = QLabel(f"Found {len(md_files)} use case(s) to import:")
+                layout.addWidget(info_label)
+
+                # List of files
+                list_widget = QListWidget()
+                for md_file in md_files:
+                    filename = md_file.replace("markdown/", "")
+                    list_widget.addItem(filename)
+                layout.addWidget(list_widget)
+
+                # Buttons
+                button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+                button_box.accepted.connect(dialog.accept)
+                button_box.rejected.connect(dialog.reject)
+                layout.addWidget(button_box)
+
+                if not dialog.exec():
+                    return
+
+                # Copy files to project
+                for md_file in md_files:
+                    src = os.path.join(import_dir, md_file)
+                    dst = os.path.join(self.project_path, "markdown", os.path.basename(md_file))
+                    shutil.copy2(src, dst)
+
+                # Copy metadata if exists
+                metadata_src = os.path.join(import_dir, "metadata.json")
+                if os.path.exists(metadata_src):
+                    metadata_dst = os.path.join(self.project_path, "metadata.json")
+                    shutil.copy2(metadata_src, metadata_dst)
+
+                # Clean up temp directory
+                shutil.rmtree(import_dir)
+
+                # Refresh navigation tree
+                self.update_navigation_tree()
+
+                QMessageBox.information(self, "Import Complete", 
+                    f"Successfully imported {len(md_files)} use case(s)")
+                self.statusBar().showMessage(f"Project imported: {os.path.basename(zip_file)}")
+
+        except zipfile.BadZipFile:
+            QMessageBox.critical(self, "Import Error", "Invalid ZIP file format.")
+        except Exception as e:
+            QMessageBox.critical(self, "Import Error", f"Failed to import project:\n{e}")
 
 
     def show_about(self):
