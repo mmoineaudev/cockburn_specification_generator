@@ -17,15 +17,15 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QMenuBar, QMenu, 
-                             QAction, QStatusBar, QTreeWidget, QTreeWidgetItem, QSplitter,
+                             QStatusBar, QTreeWidget, QTreeWidgetItem, QSplitter,
                              QTextEdit, QWidget, QVBoxLayout, QHBoxLayout, 
                              QPushButton, QLabel, QLineEdit, QComboBox, QFileDialog,
                              QMessageBox, QInputDialog, QFrame, QTabWidget, QDialog,
                              QDialogButtonBox, QHeaderView, QAbstractItemView,
                              QProgressBar, QToolBar, QCheckBox, QSpinBox, QDoubleSpinBox,
                              QProgressDialog, QGroupBox, QRadioButton, QListWidget, QListWidgetItem)
-from PyQt6.QtCore import Qt, QTimer, QMimeData, QByteArray, QThread, pyqtSignal, QEvent, QObject
-from PyQt6.QtGui import QFont, QIcon, QKeySequence, QTextCursor
+from PyQt6.QtCore import Qt, QTimer, QMimeData, QThread, pyqtSignal, QEvent, QObject
+from PyQt6.QtGui import QAction, QFont, QIcon, QKeySequence, QTextCursor
 
 
 class BatchExportWorker(QThread):
@@ -254,18 +254,8 @@ class CockburnGUI(QMainWindow):
         self.nav_filter_input.textChanged.connect(self.filter_navigation_tree)
         filter_layout.addWidget(self.nav_filter_input)
         nav_layout.addLayout(filter_layout)
-        
-        # Expand/Collapse buttons
-        expand_layout = QHBoxLayout()
-        expand_btn = QPushButton("Expand All")
-        expand_btn.clicked.connect(self.navigation_tree.expandAll)
-        expand_layout.addWidget(expand_btn)
-        collapse_btn = QPushButton("Collapse All")
-        collapse_btn.clicked.connect(self.navigation_tree.collapseAll)
-        expand_layout.addWidget(collapse_btn)
-        nav_layout.addLayout(expand_layout)
-        
-        # Navigation tree
+
+        # Navigation tree (created first so expand/collapse buttons can reference it)
         self.navigation_tree = QTreeWidget()
         self.navigation_tree.setHeaderLabels(["Use Cases", "Last Modified"])
         self.navigation_tree.setColumnCount(2)
@@ -275,6 +265,17 @@ class CockburnGUI(QMainWindow):
         self.navigation_tree.customContextMenuRequested.connect(self.show_navigation_context_menu)
         self.navigation_tree.sortByColumn(0, Qt.SortOrder.AscendingOrder)
         self.navigation_tree.itemChanged.connect(self.on_favorite_item_changed)
+
+        # Expand/Collapse buttons
+        expand_layout = QHBoxLayout()
+        expand_btn = QPushButton("Expand All")
+        expand_btn.clicked.connect(self.navigation_tree.expandAll)
+        expand_layout.addWidget(expand_btn)
+        collapse_btn = QPushButton("Collapse All")
+        collapse_btn.clicked.connect(self.navigation_tree.collapseAll)
+        expand_layout.addWidget(collapse_btn)
+        nav_layout.addLayout(expand_layout)
+
         nav_layout.addWidget(self.navigation_tree)
         
         # Navigation buttons
