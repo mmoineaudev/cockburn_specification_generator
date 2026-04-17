@@ -512,14 +512,14 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Frequency: Low - before major project milestones
 
 * [x] Implementation task 1: Create batch export menu item (Tools → Export All to Word)
-* [ ] Implementation task 2: Implement progress dialog with percentage display
-* [ ] Implementation task 3: Iterate through all use cases sequentially
-* [ ] Implementation task 4: Export each use case to individual .docx file
-* [ ] Implementation task 5: Track successful and failed exports in log
-* [ ] Implementation task 6: Add skip-already-converted option with force reconvert toggle
-* [ ] Implementation task 7: Run background processing without freezing GUI
-* [ ] Implementation task 8: Show summary dialog with success/failure count
-* [ ] Implementation task 9: Add optional auto-open of generated Word folder
+* [x] Implementation task 2: Implement progress dialog with percentage display
+* [x] Implementation task 3: Iterate through all use cases sequentially
+* [x] Implementation task 4: Export each use case to individual .docx file
+* [x] Implementation task 5: Track successful and failed exports in log
+* [x] Implementation task 6: Add skip-already-converted option with force reconvert toggle
+* [x] Implementation task 7: Run background processing without freezing GUI
+* [x] Implementation task 8: Show summary dialog with success/failure count
+* [x] Implementation task 9: Add optional auto-open of generated Word folder
 * [ ] Implementation task 10: Handle graceful cancellation mid-export
 
 ---
