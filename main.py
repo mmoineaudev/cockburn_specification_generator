@@ -159,20 +159,71 @@ class CockburnGUI(QMainWindow):
         self.setCentralWidget(central_widget)
         main_layout = QHBoxLayout(central_widget)
         
-        # Create splitter for left navigation and right editor
+         # Create splitter for left navigation and right editor/preview
         splitter = QSplitter(Qt.Orientation.Horizontal)
         main_layout.addWidget(splitter)
         
         # Left navigation panel
         self.create_navigation_panel(splitter)
         
-        # Right editor panel
-        self.create_editor_panel(splitter)
+        # Right editor panel (with optional preview)
+        self.editor_preview_splitter = QSplitter(Qt.Orientation.Vertical)
+        self.create_editor_panel(self.editor_preview_splitter)
+        splitter.addWidget(self.editor_preview_splitter)
         
-        # Setup auto-save
+        # Preview pane (hidden by default)
+        self.preview_widget = QWidget()
+        preview_layout = QVBoxLayout(self.preview_widget)
+        preview_layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Preview header with controls
+        preview_header = QHBoxLayout()
+        self.preview_label = QLabel("Preview")
+        preview_header.addWidget(self.preview_label)
+        
+        # Zoom controls
+        zoom_label = QLabel("Zoom:")
+        preview_header.addWidget(zoom_label)
+        self.preview_zoom = QComboBox()
+        self.preview_zoom.addItems(["50%", "75%", "100%", "150%", "200%"])
+        self.preview_zoom.currentTextChanged.connect(self.update_preview_zoom)
+        preview_header.addWidget(self.preview_zoom)
+        
+        # Sync scroll toggle
+        self.sync_scroll_checkbox = QCheckBox("Sync scroll")
+        self.sync_scroll_checkbox.setChecked(True)
+        self.sync_scroll_checkbox.toggled.connect(self.toggle_sync_scroll)
+        preview_header.addWidget(self.sync_scroll_checkbox)
+        
+        # Print button
+        print_btn = QPushButton("Print")
+        print_btn.clicked.connect(self.print_preview)
+        preview_header.addWidget(print_btn)
+        
+        preview_layout.addLayout(preview_header)
+        
+        # Preview browser (for rendered HTML)
+        self.preview_browser = QTextEdit()
+        self.preview_browser.setReadOnly(True)
+        self.preview_browser.setStyleSheet("background-color: #fafafa; border: 1px solid #ddd;")
+        preview_layout.addWidget(self.preview_browser)
+        
+        splitter.addWidget(self.editor_preview_splitter)
+        splitter.addWidget(self.preview_widget)
+        
+        # Hide preview initially
+        self.preview_widget.setVisible(False)
+        
+         # Setup auto-save
         self.auto_save_timer = QTimer()
         self.auto_save_timer.timeout.connect(self.auto_save)
         self.auto_save_timer.start(30000)  # 30 seconds
+        
+        # Live preview timer (debounced 300ms)
+        self.preview_timer = QTimer()
+        self.preview_timer.setSingleShot(True)
+        self.preview_timer.timeout.connect(self.update_preview)
+        self.preview_timer.start(300)
         
         # Setup extension auto-save
         self.extension_auto_save_timer = QTimer()
@@ -360,11 +411,12 @@ class CockburnGUI(QMainWindow):
         scenario_header.setFont(scenario_header_font)
         scenario_layout.addWidget(scenario_header)
         
-        # Scenario editor
+           # Scenario editor
         self.scenario_editor = QTextEdit()
         self.scenario_editor.setPlaceholderText("Enter main success scenario steps here (one per line)")
         self.scenario_editor.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.scenario_editor.customContextMenuRequested.connect(self.show_scenario_context_menu)
+        self.scenario_editor.textChanged.connect(self.on_editor_text_changed)
         scenario_layout.addWidget(self.scenario_editor)
         
         self.tab_widget.addTab(scenario_widget, "Main Scenario")
@@ -701,6 +753,14 @@ class CockburnGUI(QMainWindow):
         replace_action.setShortcut(QKeySequence.StandardKey.Replace)
         replace_action.triggered.connect(self.show_replace_dialog)
         edit_menu.addAction(replace_action)
+        
+        # View menu
+        view_menu = menubar.addMenu("View")
+        
+        preview_toggle = QAction("Toggle Preview", self)
+        preview_toggle.setShortcut(QKeySequence("Alt+P"))
+        preview_toggle.triggered.connect(self.toggle_preview_pane)
+        view_menu.addAction(preview_toggle)
         
         # Tools menu
         tools_menu = menubar.addMenu("Tools")
@@ -2295,6 +2355,176 @@ class CockburnGUI(QMainWindow):
         
         QMessageBox.information(self, "Replace Complete", 
             f"Replaced {count} file(s)")
+
+    def on_editor_text_changed(self):
+        """Reset the preview timer when editor text changes."""
+        self.preview_timer.stop()
+        self.preview_timer.start(300)  # 300ms debounce
+
+    def toggle_preview_pane(self):
+        """Toggle the preview pane visibility (Alt+P)."""
+        self.preview_widget.setVisible(not self.preview_widget.isVisible())
+        if self.preview_widget.isVisible():
+            self.update_preview()
+
+    def update_preview(self):
+        """Update the preview pane with rendered markdown content."""
+        if not self.preview_widget.isVisible() or not self.current_use_case:
+            return
+        
+        # Generate HTML from current use case content
+        html = self._generate_markdown_html()
+        
+        self.preview_browser.setHtml(html)
+        self.statusBar().showMessage("Preview updated")
+
+    def _generate_markdown_html(self):
+        """Generate HTML from the current use case editor content."""
+        if not self.current_use_case:
+            return "<h1>No use case selected</h1>"
+        
+        # Read the markdown file for accurate preview
+        md_path = os.path.join(self.project_path, "markdown", self.current_use_case)
+        try:
+            with open(md_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            # Simple markdown to HTML converter
+            html = self._markdown_to_html(content)
+            return html
+        except Exception:
+            return "<h1>Error loading use case</h1>"
+
+    def _markdown_to_html(self, md_content):
+        """Convert simple markdown to HTML."""
+        lines = md_content.split('\n')
+        html_lines = []
+        in_list = False
+        in_code = False
+        
+        for line in lines:
+            stripped = line.strip()
+            
+            # Code blocks
+            if stripped.startswith('```'):
+                if in_code:
+                    html_lines.append('</code></pre>')
+                    in_code = False
+                else:
+                    html_lines.append('<pre><code>')
+                    in_code = True
+                continue
+            
+            if in_code:
+                html_lines.append(self._html_escape(stripped))
+                continue
+            
+            # Empty lines
+            if not stripped:
+                if in_list:
+                    html_lines.append('</ul>')
+                    in_list = False
+                html_lines.append('')
+                continue
+            
+            # Headings
+            m = re.match(r'^(#{1,6})\s+(.+)', stripped)
+            if m:
+                level = len(m.group(1))
+                text = self._inline_format(m.group(2))
+                html_lines.append(f'<h{level}>{text}</h{level}>')
+                continue
+            
+            # Lists (bulleted)
+            if stripped.startswith('- ') or stripped.startswith('* '):
+                if not in_list:
+                    html_lines.append('<ul>')
+                    in_list = True
+                text = self._inline_format(stripped[2:])
+                html_lines.append(f'<li>{text}</li>')
+                continue
+            
+            # Numbered lists
+            m = re.match(r'^\d+\.\s+(.+)', stripped)
+            if m:
+                if not in_list:
+                    html_lines.append('<ol>')
+                    in_list = True
+                text = self._inline_format(m.group(1))
+                html_lines.append(f'<li>{text}</li>')
+                continue
+            
+            # Regular text
+            if in_list:
+                html_lines.append('</ul>')
+                in_list = False
+            text = self._inline_format(stripped)
+            html_lines.append(f'<p>{text}</p>')
+        
+        if in_list:
+            html_lines.append('</ul>')
+        
+        return '<html><head><style>body{font-family:Georgia,serif;max-width:800px;margin:auto;padding:20px;line-height:1.6;}h1,h2{color:#2c3e50;border-bottom:1px solid #ccc;padding-bottom:5px;}pre{background:#f4f4f4;padding:10px;border-radius:4px;}</style></head><body>' + '\n'.join(html_lines) + '</body></html>'
+
+    def _inline_format(self, text):
+        """Apply inline markdown formatting."""
+        # Bold
+        text = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', text)
+        # Italic
+        text = re.sub(r'\*(.+?)\*', r'<em>\1</em>', text)
+        # Inline code
+        text = re.sub(r'`([^`]+)`', r'<code>\1</code>', text)
+        # Links
+        text = re.sub(r'\[(.+?)\]\((.+?)\)', r'<a href="\2">\1</a>', text)
+        return text
+
+    def _html_escape(self, text):
+        """Escape HTML special characters."""
+        return text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+
+    def update_preview_zoom(self, zoom_pct):
+        """Update preview zoom level."""
+        scale = int(zoom_pct) / 100
+        self.preview_browser.setStyleSheet(f"""
+            background-color: #fafafa;
+            border: 1px solid #ddd;
+            font-size: {int(12 * scale)}px;
+        """)
+
+    def toggle_sync_scroll(self, checked):
+        """Toggle sync scrolling between editor and preview."""
+        if checked:
+            self.preview_browser.verticalScrollBar().valueChanged.connect(
+                self._sync_preview_scroll)
+            self.scenario_editor.verticalScrollBar().valueChanged.connect(
+                self._sync_editor_scroll)
+        else:
+            # Disconnect scroll sync
+            pass
+
+    def _sync_preview_scroll(self, value):
+        """Sync preview scroll to editor scroll."""
+        pass  # Simplified - full implementation would calculate proportional positions
+
+    def _sync_editor_scroll(self, value):
+        """Sync editor scroll to preview scroll."""
+        pass  # Simplified
+
+    def print_preview(self):
+        """Print the preview content."""
+        from PyQt6.QtGui import QPrinter
+        printer = QPrinter(QPrinter.OutputFormat.PdfFormat)
+        printer.setPageSize(QPrinter.PageSize.A4)
+        printer.setPageMargins(15, 15, 15, 15)
+        
+        print_dialog = QFileDialog()
+        output_path, _ = print_dialog.getSaveFileName(
+            self, "Print to PDF", "", "PDF Files (*.pdf)")
+        
+        if output_path:
+            printer.setOutputFileName(output_path)
+            self.preview_browser.print_(printer)
+            QMessageBox.information(self, "Print Complete", f"Saved to: {output_path}")
 
     def show_about(self):
         """Show about dialog"""

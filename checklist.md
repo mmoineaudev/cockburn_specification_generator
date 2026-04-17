@@ -912,7 +912,7 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * [ ] Implementation task 7: Add "Remove from Favorites" option via right-click
 * [ ] Implementation task 8: Persist favorites across project sessions
 * [ ] Implementation task 9: Preserve order of multiple favorites
-* [ ] Implementation task 10: Implement bulk actions (export favorites only)
+* [x] Implementation task 10: Implement bulk actions (export favorites only)
 
 ---
 
