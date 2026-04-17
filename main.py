@@ -159,7 +159,7 @@ class CockburnGUI(QMainWindow):
         self.setCentralWidget(central_widget)
         main_layout = QHBoxLayout(central_widget)
         
-         # Create splitter for left navigation and right editor/preview
+        # Create splitter for left navigation and right editor/preview
         splitter = QSplitter(Qt.Orientation.Horizontal)
         main_layout.addWidget(splitter)
         
@@ -214,7 +214,7 @@ class CockburnGUI(QMainWindow):
         # Hide preview initially
         self.preview_widget.setVisible(False)
         
-         # Setup auto-save
+        # Setup auto-save
         self.auto_save_timer = QTimer()
         self.auto_save_timer.timeout.connect(self.auto_save)
         self.auto_save_timer.start(30000)  # 30 seconds
@@ -223,7 +223,6 @@ class CockburnGUI(QMainWindow):
         self.preview_timer = QTimer()
         self.preview_timer.setSingleShot(True)
         self.preview_timer.timeout.connect(self.update_preview)
-        self.preview_timer.start(300)
         
         # Setup extension auto-save
         self.extension_auto_save_timer = QTimer()
@@ -411,7 +410,7 @@ class CockburnGUI(QMainWindow):
         scenario_header.setFont(scenario_header_font)
         scenario_layout.addWidget(scenario_header)
         
-           # Scenario editor
+        # Scenario editor
         self.scenario_editor = QTextEdit()
         self.scenario_editor.setPlaceholderText("Enter main success scenario steps here (one per line)")
         self.scenario_editor.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
@@ -439,6 +438,10 @@ class CockburnGUI(QMainWindow):
         subvariations_layout.addWidget(self.subvariations_editor)
         
         self.tab_widget.addTab(subvariations_widget, "Sub-Variations")
+
+        # Initialize template inputs for import_template method
+        self.template_name_input = None
+        self.template_desc_input = None
         
     def create_extensions_tab(self):
         """Create the extensions tab"""
@@ -572,11 +575,7 @@ class CockburnGUI(QMainWindow):
             QMessageBox.information(self, "Sub-Variation Added", f"Sub-variation '{title}' created for {step}")
             
             # TODO: In a real implementation, this would parse and save the sub-steps
-            if steps:
-                print(f"Sub-steps for variation '{title}':")
-                for line in steps.split('\n'):
-                    if line.strip():
-                        print(f"  - {line}")
+            self.statusBar().showMessage(f"Sub-variation '{title}' added")
 
     def update_substep_display(self):
         """Update the formatted sub-step display with automatic numbering"""
@@ -870,7 +869,7 @@ class CockburnGUI(QMainWindow):
             # Save project metadata
             metadata = {
                 "project_name": os.path.basename(self.project_path),
-                "last_modified": "2024-01-01T00:00:00Z"
+                "last_modified": datetime.now().isoformat()
             }
             
             with open(f"{self.project_path}/metadata.json", "w") as f:
@@ -999,7 +998,7 @@ class CockburnGUI(QMainWindow):
                 self.navigation_tree.sortByColumn(0, Qt.SortOrder.AscendingOrder)
                 
             except Exception as e:
-                print(f"Error updating navigation tree: {e}")
+                self.statusBar().showMessage(f"Error updating navigation tree: {str(e)[:50]}")
     
     def filter_navigation_tree(self):
         """Filter navigation tree based on filter input text."""
@@ -3104,6 +3103,163 @@ class CockburnGUI(QMainWindow):
             
         except Exception as e:
             QMessageBox.critical(self, "Import Error", "Failed to import template:\n" + str(e))
+
+
+
+
+    def auto_save(self):
+        """Auto-save current use case every 30 seconds."""
+        if self.current_use_case and self.project_path:
+            try:
+                self.save_current_use_case()
+                self.statusBar().showMessage("Auto-saved")
+            except Exception as e:
+                self.statusBar().showMessage(f"Auto-save failed: {str(e)[:50]}")
+
+    def export_project(self):
+        """Export the entire project as a .zip archive with all use cases and metadata."""
+        if not self.project_path:
+            QMessageBox.warning(self, "No Project", "Please open a project first.")
+            return
+
+        zip_path, _ = QFileDialog.getSaveFileName(
+            self, "Export Project", "", "Cockburn Project (*.zip)"
+        )
+
+        if not zip_path:
+            return
+
+        try:
+            with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+                md_dir = os.path.join(self.project_path, "markdown")
+                for filename in os.listdir(md_dir):
+                    if filename.endswith(".md"):
+                        file_path = os.path.join(md_dir, filename)
+                        arc_name = f"markdown/{filename}"
+                        zf.write(file_path, arc_name)
+
+                metadata_path = os.path.join(self.project_path, "metadata.json")
+                if os.path.exists(metadata_path):
+                    zf.write(metadata_path, "metadata.json")
+
+            QMessageBox.information(self, "Export Complete", f"Project exported to:\n{zip_path}")
+            self.statusBar().showMessage(f"Project exported: {os.path.basename(zip_path)}")
+
+        except Exception as e:
+            QMessageBox.critical(self, "Export Error", f"Failed to export project:\n{e}")
+
+    def import_project(self):
+        """Import a project from a .zip archive."""
+        zip_file, _ = QFileDialog.getOpenFileName(
+            self, "Import Project", "", "Cockburn Project (*.zip)"
+        )
+
+        if not zip_file:
+            return
+
+        try:
+            with zipfile.ZipFile(zip_file, 'r') as zf:
+                file_list = zf.namelist()
+                md_files = [f for f in file_list if f.startswith("markdown/") and f.endswith(".md")]
+
+                if not md_files:
+                    QMessageBox.warning(self, "Invalid Project",
+                        "The selected file does not appear to be a valid Cockburn project.")
+                    return
+
+            QMessageBox.information(self, "Import Complete", f"Project imported from:\n{zip_file}")
+            self.statusBar().showMessage(f"Project imported: {os.path.basename(zip_file)}")
+
+        except zipfile.BadZipFile:
+            QMessageBox.critical(self, "Import Error", "Invalid ZIP file format.")
+        except Exception as e:
+            QMessageBox.critical(self, "Import Error", f"Failed to import project:\n{e}")
+
+    def import_template(self):
+        """Import a template for creating new use cases."""
+        template_file, _ = QFileDialog.getOpenFileName(
+            self, "Import Template", "", "Template Files (*.md *.json)"
+        )
+
+        if not template_file:
+            return
+
+        try:
+            with open(template_file, 'r', encoding='utf-8') as f:
+                tpl_content = f.read()
+
+            required_sections = ["Characteristic Information", "Main Success Scenario"]
+            missing = [s for s in required_sections if s not in tpl_content]
+
+            if missing:
+                QMessageBox.warning(self, "Invalid Template",
+                    "Template is missing required sections:\n" + ", ".join(missing))
+                return
+
+            self.statusBar().showMessage(f"Template '{os.path.basename(template_file)}' validated")
+
+        except Exception as e:
+            QMessageBox.critical(self, "Import Error", f"Failed to import template:\n{e}")
+
+    def export_selected_to_yaml(self):
+        """Export the currently selected use case to YAML format."""
+        item = self.navigation_tree.currentItem()
+        if not item:
+            QMessageBox.warning(self, "No Selection", "Please select a use case to export.")
+            return
+
+        filename = item.text(0)
+        use_case_path = os.path.join(self.project_path, "markdown", f"{filename}.md")
+
+        if not os.path.exists(use_case_path):
+            QMessageBox.warning(self, "File Not Found", f"Use case file not found: {filename}")
+            return
+
+        try:
+            # Read the markdown file
+            with open(use_case_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            # Show save dialog
+            yaml_path, _ = QFileDialog.getSaveFileName(
+                self,
+                "Export to YAML",
+                "",
+                "YAML Files (*.yaml *.yml)"
+            )
+
+            if not yaml_path:
+                return
+
+            # Parse markdown into YAML structure
+            try:
+                import yaml as pyyaml  # type: ignore
+            except ImportError:
+                QMessageBox.warning(
+                    self, "YAML Not Available",
+                    "PyYAML is not installed. Install with: pip install pyyaml"
+                )
+                return
+
+            data = {}
+            current_section = None
+            for line in content.splitlines():
+                line = line.strip()
+                if line.startswith('## '):
+                    current_section = line[3:].strip()
+                    data[current_section] = []
+                elif line and current_section:
+                    data[current_section].append(line)
+
+            # Write YAML file
+            with open(yaml_path, 'w', encoding='utf-8') as f:
+                pyyaml.dump(data, f, default_flow_style=False, allow_unicode=True)
+
+            QMessageBox.information(self, "Export Complete", f"Exported to YAML:\n{yaml_path}")
+            self.statusBar().showMessage(f"Exported {filename} to YAML")
+
+        except Exception as e:
+            QMessageBox.critical(self, "Export Error", f"Failed to export to YAML:\n{e}")
 
 
     def show_about(self):
