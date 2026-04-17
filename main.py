@@ -23,7 +23,7 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QMenuBar, QMenu,
                              QMessageBox, QInputDialog, QFrame, QTabWidget, QDialog,
                              QDialogButtonBox, QHeaderView, QAbstractItemView,
                              QProgressBar, QToolBar, QCheckBox, QSpinBox, QDoubleSpinBox,
-                             QProgressDialog, QGroupBox, QRadioButton)
+                             QProgressDialog, QGroupBox, QRadioButton, QListWidget, QListWidgetItem)
 from PyQt6.QtCore import Qt, QTimer, QMimeData, QByteArray, QThread, pyqtSignal, QEvent, QObject
 from PyQt6.QtGui import QFont, QIcon, QKeySequence, QTextCursor
 
@@ -672,7 +672,13 @@ class CockburnGUI(QMainWindow):
         
         find_action = QAction("Find", self)
         find_action.setShortcut(QKeySequence.StandardKey.Find)
+        find_action.triggered.connect(self.show_search_dialog)
         edit_menu.addAction(find_action)
+        
+        replace_action = QAction("Replace", self)
+        replace_action.setShortcut(QKeySequence.StandardKey.Replace)
+        replace_action.triggered.connect(self.show_replace_dialog)
+        edit_menu.addAction(replace_action)
         
         # Tools menu
         tools_menu = menubar.addMenu("Tools")
@@ -1973,6 +1979,218 @@ class CockburnGUI(QMainWindow):
                         os.system(f'xdg-open "{word_dir}"')
                 except Exception as e:
                     QMessageBox.warning(self, "Open Folder Error", f"Could not open folder: {e}")
+
+    def show_search_dialog(self):
+        """Show global search dialog (Ctrl+F)."""
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Find in Project")
+        dialog.setModal(True)
+        dialog.setMinimumWidth(500)
+        
+        layout = QVBoxLayout(dialog)
+        
+        # Search input
+        search_layout = QHBoxLayout()
+        search_layout.addWidget(QLabel("Search:"))
+        self.search_input = QLineEdit()
+        self.search_input.setPlaceholderText("Enter search term...")
+        self.search_input.returnPressed.connect(self.perform_search)
+        search_layout.addWidget(self.search_input)
+        layout.addLayout(search_layout)
+        
+        # Options
+        options_layout = QHBoxLayout()
+        self.search_case_sensitive = QCheckBox("Case sensitive")
+        options_layout.addWidget(self.search_case_sensitive)
+        
+        self.search_in_name_only = QCheckBox("In name only")
+        options_layout.addWidget(self.search_in_name_only)
+        layout.addLayout(options_layout)
+        
+        # Search button
+        search_btn = QPushButton("Search")
+        search_btn.clicked.connect(self.perform_search)
+        layout.addWidget(search_btn)
+        
+        # Results list
+        self.search_results = QListWidget()
+        self.search_results.itemClicked.connect(self.on_search_result_clicked)
+        layout.addWidget(QLabel("Results:"))
+        layout.addWidget(self.search_results)
+        
+        # Result count label
+        self.result_count_label = QLabel("")
+        layout.addWidget(self.result_count_label)
+        
+        # Close button
+        close_btn = QPushButton("Close")
+        close_btn.clicked.connect(dialog.accept)
+        layout.addWidget(close_btn)
+        
+        # Store dialog references for later use
+        self._search_dialog = dialog
+        
+        # Install keyboard shortcut for Escape
+        from PyQt6.QtGui import QKeySequence
+        esc_action = QAction(dialog)
+        esc_action.setShortcut(QKeySequence("Escape"))
+        esc_action.triggered.connect(dialog.accept)
+        dialog.addAction(esc_action)
+        
+        dialog.exec()
+
+    def perform_search(self):
+        """Perform case-insensitive search across all use cases."""
+        self.search_results.clear()
+        term = self.search_input.text().strip()
+        
+        if not term:
+            return
+        
+        case_sensitive = self.search_case_sensitive.isChecked()
+        in_name_only = self.search_in_name_only.isChecked()
+        
+        match_count = 0
+        use_cases_found = set()
+        
+        # Search across all markdown files
+        if self.project_path:
+            md_dir = os.path.join(self.project_path, "markdown")
+            if os.path.exists(md_dir):
+                for filename in os.listdir(md_dir):
+                    if not filename.endswith('.md'):
+                        continue
+                    
+                    filepath = os.path.join(md_dir, filename)
+                    try:
+                        with open(filepath, 'r', encoding='utf-8') as f:
+                            content = f.read()
+                        
+                        # Search in filename if needed
+                        search_text = content
+                        if in_name_only:
+                            search_text = filename
+                        
+                        flags = 0 if case_sensitive else re.IGNORECASE
+                        
+                        # Find all matches
+                        pattern = re.escape(term)
+                        for match in re.finditer(pattern, search_text, flags):
+                            start = max(0, match.start() - 30)
+                            end = min(len(search_text), match.end() + 30)
+                            context = search_text[start:end].replace('\n', ' ')
+                            
+                            item = QListWidgetItem(f"{filename}...\n    ...{context}...")
+                            item.setData(Qt.ItemDataRole.UserRole, (filename, match.start()))
+                            self.search_results.addItem(item)
+                            match_count += 1
+                            use_cases_found.add(filename)
+                    except Exception:
+                        pass
+        
+        self.result_count_label.setText(f"{match_count} matches in {len(use_cases_found)} use case(s)")
+
+    def on_search_result_clicked(self, item):
+        """Handle click on a search result."""
+        data = item.data(Qt.ItemDataRole.UserRole)
+        if data:
+            filename, pos = data
+            # Open the use case
+            self.current_use_case = filename
+            self.open_use_case(filename)
+            
+            # Highlight the match in scenario editor
+            try:
+                filepath = os.path.join(self.project_path, "markdown", filename)
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                cursor = self.scenario_editor.textCursor()
+                term = self.search_input.text().strip()
+                flags = 0 if self.search_case_sensitive.isChecked() else re.IGNORECASE
+                
+                pattern = re.escape(term)
+                match = re.search(pattern, content, flags)
+                if match:
+                    cursor.setPosition(match.start())
+                    self.scenario_editor.setTextCursor(cursor)
+            except Exception:
+                pass
+    
+    def show_replace_dialog(self):
+        """Show replace dialog (Ctrl+R/Ctrl+Shift+R)."""
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Find and Replace")
+        dialog.setModal(True)
+        dialog.setMinimumWidth(500)
+        
+        layout = QVBoxLayout(dialog)
+        
+        # Find input
+        find_layout = QHBoxLayout()
+        find_layout.addWidget(QLabel("Find:"))
+        find_input = QLineEdit()
+        find_input.setPlaceholderText("Search term...")
+        find_layout.addWidget(find_input)
+        layout.addLayout(find_layout)
+        
+        # Replace input
+        replace_layout = QHBoxLayout()
+        replace_layout.addWidget(QLabel("Replace with:"))
+        replace_input = QLineEdit()
+        replace_input.setPlaceholderText("Replacement text...")
+        replace_layout.addWidget(replace_input)
+        layout.addLayout(replace_layout)
+        
+        # Options
+        case_cb = QCheckBox("Case sensitive")
+        layout.addWidget(case_cb)
+        
+        # Replace button
+        replace_btn = QPushButton("Replace All")
+        replace_btn.clicked.connect(lambda: self.perform_replace(find_input.text(), replace_input.text(), case_cb.isChecked()))
+        layout.addWidget(replace_btn)
+        
+        # Close
+        close_btn = QPushButton("Close")
+        close_btn.clicked.connect(dialog.accept)
+        layout.addWidget(close_btn)
+        
+        dialog.exec()
+
+    def perform_replace(self, find_text: str, replace_text: str, case_sensitive: bool):
+        """Replace all occurrences of find_text with replace_text."""
+        if not find_text or not self.project_path:
+            return
+        
+        md_dir = os.path.join(self.project_path, "markdown")
+        if not os.path.exists(md_dir):
+            return
+        
+        flags = 0 if case_sensitive else re.IGNORECASE
+        count = 0
+        
+        for filename in os.listdir(md_dir):
+            if not filename.endswith('.md'):
+                continue
+            
+            filepath = os.path.join(md_dir, filename)
+            try:
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                new_content = re.sub(re.escape(find_text), replace_text, content, flags=flags)
+                
+                if new_content != content:
+                    with open(filepath, 'w', encoding='utf-8') as f:
+                        f.write(new_content)
+                    count += 1
+            
+            except Exception:
+                pass
+        
+        QMessageBox.information(self, "Replace Complete", 
+            f"Replaced {count} file(s)")
 
     def show_about(self):
         """Show about dialog"""

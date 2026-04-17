@@ -791,16 +791,16 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Performance Target: Search completes within 500ms for 100 use cases
 * Frequency: High - regular navigation activity
 
-* [ ] Implementation task 1: Create Ctrl+F shortcut to open search dialog
-* [ ] Implementation task 2: Implement floating search dialog above editor
-* [ ] Implementation task 3: Add text input for search term entry
-* [ ] Implementation task 4: Perform case-insensitive search across all fields
-* [ ] Implementation task 5: Display results window with context snippets
-* [ ] Implementation task 6: Show result count (e.g., "3 matches in 2 use cases")
-* [ ] Implementation task 7: Enable clicking on result to open use case and scroll to match
-* [ ] Implementation task 8: Add Next/Previous buttons for navigating between results
-* [ ] Implementation task 9: Highlight matching text in editor
-* [ ] Implementation task 10: Close search dialog with Esc key
+* [x] Implementation task 1: Create Ctrl+F shortcut to open search dialog
+* [x] Implementation task 2: Implement floating search dialog above editor
+* [x] Implementation task 3: Add text input for search term entry
+* [x] Implementation task 4: Perform case-insensitive search across all fields
+* [x] Implementation task 5: Display results window with context snippets
+* [x] Implementation task 6: Show result count (e.g., "3 matches in 2 use cases")
+* [x] Implementation task 7: Enable clicking on result to open use case and scroll to match
+* [x] Implementation task 8: Add Next/Previous buttons for navigating between results
+* [x] Implementation task 9: Highlight matching text in editor
+* [x] Implementation task 10: Close search dialog with Esc key
 
 ---
 
