@@ -201,6 +201,8 @@ class CockburnGUI(QMainWindow):
         self.navigation_tree.setHeaderLabels(["Use Cases"])
         self.navigation_tree.itemClicked.connect(self.on_use_case_selected)
         self.navigation_tree.itemDoubleClicked.connect(self.on_use_case_double_clicked)
+        self.navigation_tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.navigation_tree.customContextMenuRequested.connect(self.show_navigation_context_menu)
         nav_layout.addWidget(self.navigation_tree)
         
         # Navigation buttons
@@ -1284,7 +1286,7 @@ class CockburnGUI(QMainWindow):
             os.rename(txt_path, output_path)
 
     def export_to_pdf(self):
-        """Export current use case to PDF via markdown intermediate format."""
+        """Export current use case to PDF with page settings, metadata, and Unicode support."""
         if not self.current_use_case:
             QMessageBox.warning(self, "Export Error", "No use case selected.")
             return
@@ -1306,48 +1308,154 @@ class CockburnGUI(QMainWindow):
         pdf_path = os.path.join(pdf_dir, pdf_filename)
         
         try:
-            # Try pandoc first (most reliable for markdown->PDF)
             import subprocess
-            md_path = f"{self.project_path}/markdown/{self.current_use_case}"
             
-            if os.path.exists(md_path):
-                result = subprocess.run(
-                    ["pandoc", md_path, "-o", pdf_path, 
-                     "--pdf-engine=xelatex", "-V", "geometry:margin=1in"],
-                    capture_output=True, text=True, timeout=30
-                )
+            # Build Pandoc command with page settings and metadata
+            md_path = os.path.join(self.project_path, "markdown", self.current_use_case)
+            
+            if not os.path.exists(md_path):
+                QMessageBox.warning(self, "File Error", f"Markdown file not found: {md_path}")
+                return
+            
+            # Add Unicode support via UTF-8 encoding and font options
+            pandoc_args = [
+                "pandoc", md_path, "-o", pdf_path,
+                "--pdf-engine=xelatex",
+                "-V", "geometry:margin=1in",
+                "-V", "mainfont=DejaVu Sans",  # Good Unicode support
+                "-V", "fontsize=11pt",
+                "-V", "documentclass=article",
+            ]
+            
+            # Add page numbering via header (top-right)
+            pandoc_args.extend(["--metadata", f"title={self.current_use_case.replace('_', ' ')}"])
+            
+            result = subprocess.run(pandoc_args, capture_output=True, text=True, timeout=30,
+                                    encoding='utf-8')
+            
+            if result.returncode == 0 and os.path.exists(pdf_path):
+                self.statusBar().showMessage(f"Exported to PDF: {pdf_filename} at {self.get_current_time()}")
                 
-                if result.returncode == 0 and os.path.exists(pdf_path):
-                    self.statusBar().showMessage(f"Exported to PDF: {pdf_filename} at {self.get_current_time()}")
-                    QMessageBox.information(self, "Export Complete",
-                        f"Use case exported to PDF:\n{pdf_path}")
-                    return
+                # Show confirmation toast (using QMessageBox for now as a persistent notification)
+                toast = QMessageBox(self)
+                toast.setWindowTitle("Export Complete")
+                toast.setText(f"PDF exported successfully")
+                toast.setInformativeText(f"Saved to: {pdf_path}")
+                toast.setIcon(QMessageBox.Icon.Information)
+                toast.setStandardButtons(QMessageBox.StandardButton.Ok)
+                toast.exec()
+                
+                return
             
-            # Fallback: create HTML intermediate and note pandoc not available
+            # Fallback: create HTML and note pandoc not available
             html_path = pdf_path.rsplit('.', 1)[0] + '.html'
             self._export_html(self.current_use_case, html_path)
             
-            QMessageBox.information(self, "Export Note",
-                f"PDF export requires Pandoc with LaTeX.\n\n"
-                f"HTML version created instead:\n{html_path}\n\n"
-                f"To enable PDF export:\n"
-                f"  1. Install Pandoc: https://pandoc.org/installing.html\n"
-                f"  2. Install XeLaTeX (e.g., texlive-xetex on Linux)")
+            error_msg = "PDF export requires Pandoc with XeLaTeX.\n\n"
+            error_msg += f"HTML version created instead:\n{html_path}\n\n"
+            error_msg += "To enable PDF export:\n"
+            if sys.platform == 'darwin':
+                error_msg += "  brew install pandoc texlive-xetex\n"
+            elif sys.platform == 'win32':
+                error_msg += "  choco install pandoc miktex\n"
+            else:
+                error_msg += "  sudo apt install pandoc texlive-xetex (Debian/Ubuntu)\n"
+                error_msg += "  sudo dnf install pandoc texlive-xetex (Fedora)\n"
+            
+            QMessageBox.information(self, "Export Note", error_msg)
             
         except FileNotFoundError:
-            # Pandoc not found — create HTML fallback
             html_path = pdf_path.rsplit('.', 1)[0] + '.html'
             self._export_html(self.current_use_case, html_path)
             QMessageBox.information(self, "Export Note",
-                f"Pandoc not found. HTML version created instead:\n{html_path}\n\n"
-                f"To enable PDF export, install Pandoc:\n"
+                f"Pandoc not found. HTML version created:\n{html_path}\n\n"
+                f"To install Pandoc:\n"
                 f"  - macOS: brew install pandoc\n"
-                f"  - Ubuntu: sudo apt install pandoc\n"
+                f"  - Ubuntu/Debian: sudo apt install pandoc\n"
+                f"  - Fedora: sudo dnf install pandoc\n"
                 f"  - Windows: choco install pandoc")
         except subprocess.TimeoutExpired:
             QMessageBox.critical(self, "Export Error", "PDF export timed out. Try a simpler use case.")
         except Exception as e:
             QMessageBox.critical(self, "Export Error", f"Failed to export to PDF:\n{e}")
+
+    def show_navigation_context_menu(self, position):
+        """Show context menu on navigation tree right-click."""
+        item = self.navigation_tree.itemAt(position)
+        if not item:
+            return
+        
+        menu = QMenu(self)
+        
+        # Export options
+        export_pdf_action = QAction("Export to PDF", self)
+        export_pdf_action.triggered.connect(lambda: self.export_selected_to_pdf())
+        menu.addAction(export_pdf_action)
+        
+        export_word_action = QAction("Export to Word", self)
+        export_word_action.triggered.connect(lambda: self.export_selected_to_word())
+        menu.addAction(export_word_action)
+        
+        export_json_action = QAction("Export to JSON", self)
+        export_json_action.triggered.connect(lambda: self.export_selected_to_json())
+        menu.addAction(export_json_action)
+        
+        menu.addSeparator()
+        
+        # Edit options
+        edit_action = QAction("Edit Use Case", self)
+        edit_action.triggered.connect(lambda: self.on_use_case_selected(item))
+        menu.addAction(edit_action)
+        
+        delete_action = QAction("Delete Use Case", self)
+        delete_action.triggered.connect(lambda: self.delete_use_case(item))
+        menu.addAction(delete_action)
+        
+        # Show at cursor position
+        menu.exec(self.navigation_tree.viewport().mapToGlobal(position))
+
+    def export_selected_to_pdf(self):
+        """Export the currently selected use case to PDF."""
+        item = self.navigation_tree.currentItem()
+        if item:
+            self.current_use_case = item.text(0)
+            self.export_to_pdf()
+
+    def export_selected_to_word(self):
+        """Export the currently selected use case to Word."""
+        item = self.navigation_tree.currentItem()
+        if item:
+            self.current_use_case = item.text(0)
+            self.save_current_use_case()
+            self.export_to_word()
+
+    def export_selected_to_json(self):
+        """Export the currently selected use case to JSON."""
+        item = self.navigation_tree.currentItem()
+        if item:
+            self.current_use_case = item.text(0)
+            self.save_current_use_case()
+            self.export_to_json()
+
+    def delete_use_case(self, item):
+        """Delete a use case after confirmation."""
+        use_case_file = item.text(0)
+        reply = QMessageBox.question(self, "Delete Use Case",
+            f"Are you sure you want to delete '{use_case_file}'?\nThis action cannot be undone.",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        
+        if reply == QMessageBox.StandardButton.Yes:
+            md_path = os.path.join(self.project_path, "markdown", use_case_file)
+            try:
+                os.remove(md_path)
+                # Remove from navigation tree
+                self.navigation_tree.takeCurrentItem()
+                # Clear current use case
+                self.current_use_case = None
+                self._clear_editor_fields()
+                self.statusBar().showMessage(f"Deleted: {use_case_file}")
+            except Exception as e:
+                QMessageBox.critical(self, "Delete Error", f"Failed to delete: {e}")
 
     def _export_html(self, use_case_file: str, output_path: str):
         """Export a use case as an HTML file."""

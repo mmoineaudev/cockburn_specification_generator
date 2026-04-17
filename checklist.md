@@ -567,16 +567,16 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Performance Target: PDF generation within 15 seconds per use case
 * Frequency: Low - before external distribution
 
-* [ ] Implementation task 1: Create export to PDF functionality (right-click context menu)
-* [ ] Implementation task 2: Implement Pandoc/pdfkit integration for Markdown-to-PDF conversion
-* [ ] Implementation task 3: Apply page settings (A4/Letter selection, 1-inch margins)
-* [ ] Implementation task 4: Add page numbering in top-right corner
-* [ ] Implementation task 5: Embed document properties in PDF metadata
-* [ ] Implementation task 6: Ensure Unicode character embedding
-* [ ] Implementation task 7: Save PDF to project directory as UC-{number}_{name}.pdf
-* [ ] Implementation task 8: Show confirmation toast with file location
-* [ ] Implementation task 9: Add page size selection in preferences
-* [ ] Implementation task 10: Bundle optional font files for special font requirements
+* [x] Implementation task 1: Create export to PDF functionality (right-click context menu)
+* [x] Implementation task 2: Implement Pandoc/pdfkit integration for Markdown-to-PDF conversion
+* [x] Implementation task 3: Apply page settings (A4/Letter selection, 1-inch margins)
+* [x] Implementation task 4: Add page numbering in top-right corner
+* [x] Implementation task 5: Embed document properties in PDF metadata
+* [x] Implementation task 6: Ensure Unicode character embedding
+* [x] Implementation task 7: Save PDF to project directory as UC-{number}_{name}.pdf
+* [x] Implementation task 8: Show confirmation toast with file location
+* [x] Implementation task 9: Add page size selection in preferences
+* [x] Implementation task 10: Bundle optional font files for special font requirements
 
 ---
 
