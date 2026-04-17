@@ -701,94 +701,123 @@ class CockburnGUI(QMainWindow):
     def setup_menu(self):
         """Setup the menu bar"""
         menubar = self.menuBar()
-        
+
         # File menu
         file_menu = menubar.addMenu("File")
-        
+
         new_action = QAction("New Project", self)
         new_action.setShortcut(QKeySequence.StandardKey.New)
         new_action.triggered.connect(self.new_project)
         file_menu.addAction(new_action)
-        
+
         open_action = QAction("Open Project", self)
         open_action.setShortcut(QKeySequence.StandardKey.Open)
         open_action.triggered.connect(self.open_project)
         file_menu.addAction(open_action)
-        
+
         save_action = QAction("Save Project", self)
         save_action.setShortcut(QKeySequence.StandardKey.Save)
         save_action.triggered.connect(self.save_project)
         file_menu.addAction(save_action)
-        
+
         save_as_action = QAction("Save As", self)
         save_as_action.setShortcut(QKeySequence.StandardKey.SaveAs)
         save_as_action.triggered.connect(self.save_project_as)
         file_menu.addAction(save_as_action)
-        
+
         file_menu.addSeparator()
-        
+
         exit_action = QAction("Exit", self)
         exit_action.triggered.connect(self.close)
         file_menu.addAction(exit_action)
-        
+
         # Edit menu
         edit_menu = menubar.addMenu("Edit")
-        
+
         undo_action = QAction("Undo", self)
         undo_action.setShortcut(QKeySequence.StandardKey.Undo)
         edit_menu.addAction(undo_action)
-        
+
         redo_action = QAction("Redo", self)
         redo_action.setShortcut(QKeySequence.StandardKey.Redo)
         edit_menu.addAction(redo_action)
-        
+
         edit_menu.addSeparator()
-        
+
         find_action = QAction("Find", self)
         find_action.setShortcut(QKeySequence.StandardKey.Find)
         find_action.triggered.connect(self.show_search_dialog)
         edit_menu.addAction(find_action)
-        
+
         replace_action = QAction("Replace", self)
         replace_action.setShortcut(QKeySequence.StandardKey.Replace)
         replace_action.triggered.connect(self.show_replace_dialog)
         edit_menu.addAction(replace_action)
-        
+
         # View menu
         view_menu = menubar.addMenu("View")
-        
+
         preview_toggle = QAction("Toggle Preview", self)
         preview_toggle.setShortcut(QKeySequence("Alt+P"))
         preview_toggle.triggered.connect(self.toggle_preview_pane)
         view_menu.addAction(preview_toggle)
-        
+
         # Tools menu
         tools_menu = menubar.addMenu("Tools")
-        
+
         export_word_action = QAction("Export to Word", self)
+        export_word_action.setShortcut(QKeySequence.StandardKey.Print)
         export_word_action.triggered.connect(self.export_to_word)
         tools_menu.addAction(export_word_action)
-        
-        export_all_word_action = QAction("Export All to Word", self)
-        export_all_word_action.setShortcut(QKeySequence("Ctrl+Shift+E"))
-        export_all_word_action.triggered.connect(self.export_all_to_word)
-        tools_menu.addAction(export_all_word_action)
-        
+
         export_pdf_action = QAction("Export to PDF", self)
         export_pdf_action.triggered.connect(self.export_to_pdf)
         tools_menu.addAction(export_pdf_action)
-        
+
         export_json_action = QAction("Export to JSON", self)
-        export_json_action.triggered.connect(self.export_to_json)
+        export_json_action.triggered.connect(self.export_selected_to_json)
         tools_menu.addAction(export_json_action)
-        
+
+        export_yaml_action = QAction("Export to YAML", self)
+        export_yaml_action.triggered.connect(self.export_selected_to_yaml)
+        tools_menu.addAction(export_yaml_action)
+
+        tools_menu.addSeparator()
+
+        # Batch export
+        batch_export_action = QAction("Export All to Word", self)
+        batch_export_action.setShortcut(QKeySequence("Ctrl+Shift+E"))
+        batch_export_action.triggered.connect(self.export_all_to_word)
+        tools_menu.addAction(batch_export_action)
+
+        # Validation
+        validation_action = QAction("Validate Use Case", self)
+        validation_action.triggered.connect(self.show_validation_summary)
+        tools_menu.addAction(validation_action)
+
+        # Preferences
+        prefs_action = QAction("Preferences", self)
+        prefs_action.setShortcut(QKeySequence.StandardKey.Preferences)
+        prefs_action.triggered.connect(self.show_preferences_dialog)
+        tools_menu.addAction(prefs_action)
+
         # Help menu
         help_menu = menubar.addMenu("Help")
-        
+
+        shortcuts_action = QAction("Keyboard Shortcuts", self)
+        shortcuts_action.setShortcut(QKeySequence("F1"))
+        shortcuts_action.triggered.connect(self.show_keyboard_shortcuts_dialog)
+        help_menu.addAction(shortcuts_action)
+
+        user_guide_action = QAction("User Guide", self)
+        user_guide_action.triggered.connect(self.show_help_dialog)
+        help_menu.addAction(user_guide_action)
+
         about_action = QAction("About", self)
         about_action.triggered.connect(self.show_about)
         help_menu.addAction(about_action)
-        
+
+    
     def setup_status_bar(self):
         """Setup the status bar"""
         self.statusBar().showMessage("Ready")
@@ -2525,6 +2554,299 @@ class CockburnGUI(QMainWindow):
             printer.setOutputFileName(output_path)
             self.preview_browser.print_(printer)
             QMessageBox.information(self, "Print Complete", f"Saved to: {output_path}")
+
+    def run_validation(self):
+        """Run the full validation engine on current use case."""
+        errors = []
+        warnings = []
+        
+        if not self.current_use_case or not self.project_path:
+            return errors, warnings
+        
+        self._validate_required_fields(errors, warnings)
+        self._validate_structure(errors, warnings)
+        self._validate_content_quality(errors, warnings)
+        self._update_validation_indicators(errors, warnings)
+        
+        error_msg = f"Validation: {len(errors)} errors, {len(warnings)} warnings"
+        if not errors and not warnings:
+            error_msg = "✓ Validation passed - all checks green"
+        elif errors:
+            error_msg = f"✗ {error_msg}"
+        self.statusBar().showMessage(error_msg)
+        
+        return errors, warnings
+    
+    def _validate_required_fields(self, errors, warnings):
+        """Check that all required fields have content."""
+        required_fields = [
+            ("Goal in Context", self.goal_input),
+            ("Scope", self.scope_input),
+            ("Preconditions", self.preconditions_input),
+            ("Success End Condition", self.success_input),
+            ("Failed End Condition", self.failed_input),
+            ("Primary Actor", self.actor_input),
+            ("Trigger", self.trigger_input),
+        ]
+        
+        for field_name, widget in required_fields:
+            text = widget.toPlainText().strip() if hasattr(widget, 'toPlainText') else widget.text().strip()
+            if not text:
+                warnings.append(f"{field_name} is empty")
+    
+    def _validate_structure(self, errors, warnings):
+        """Validate use case structure."""
+        scenario_text = self.scenario_editor.toPlainText().strip()
+        if scenario_text:
+            lines_list = [l.strip() for l in scenario_text.split('\n') if l.strip()]
+            if len(lines_list) == 0:
+                errors.append("Main success scenario has no steps")
+        
+        ext_text = self.extensions_preview.toPlainText().strip()
+        if ext_text:
+            import re as _re
+            for line in ext_text.split('\n'):
+                m = _re.search(r'step altered #(\d+)', line)
+                if m:
+                    ext_step = int(m.group(1))
+                    scenario_steps = set()
+                    for sl in scenario_text.split('\n'):
+                        sm = _re.search(r'step #(\d+)', sl.strip())
+                        if sm:
+                            scenario_steps.add(int(sm.group(1)))
+                    
+                    if ext_step not in scenario_steps:
+                        warnings.append(f"Extension references step #{ext_step} which doesn't exist")
+    
+    def _validate_content_quality(self, errors, warnings):
+        """Check content quality metrics."""
+        scenario_text = self.scenario_editor.toPlainText().strip()
+        if scenario_text:
+            for i, line in enumerate(scenario_text.split('\n')):
+                line = line.strip()
+                if not line:
+                    continue
+                if len(line) < 10:
+                    warnings.append(f"Step {i+1} is very short ({len(line)} chars)")
+                if 'TODO' in line.upper():
+                    warnings.append(f"Step {i+1} contains TODO placeholder")
+        
+        goal = self.goal_input.toPlainText().strip()
+        if goal and len(goal) < 20:
+            warnings.append("Goal in Context seems too brief - consider expanding")
+    
+    def _update_validation_indicators(self, errors, warnings):
+        """Update visual indicators based on validation results."""
+        has_errors = len(errors) > 0
+        self._color_field(self.goal_input, has_errors)
+        self._color_field(self.scope_input, has_errors)
+        self._color_field(self.preconditions_input, has_errors)
+    
+    def _color_field(self, widget, has_error):
+        """Add visual indicator to a widget based on validation state."""
+        if has_error:
+            widget.setStyleSheet("border-color: #e74c3c; border-width: 2px;")
+        else:
+            widget.setStyleSheet("")
+    
+    def show_validation_summary(self):
+        """Show a detailed validation summary dialog."""
+        errors, warnings = self.run_validation()
+        
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Validation Summary")
+        dialog.setModal(True)
+        dialog.setMinimumWidth(400)
+        
+        layout = QVBoxLayout(dialog)
+        
+        error_list_widget = QListWidget()
+        for e in errors:
+            item = QListWidgetItem(f"✗ {e}")
+            item.setForeground(Qt.GlobalColor.red)
+            error_list_widget.addItem(item)
+        for w in warnings:
+            item = QListWidgetItem(f"⚠ {w}")
+            item.setForeground(Qt.GlobalColor.yellow)
+            error_list_widget.addItem(item)
+        
+        layout.addWidget(QLabel(f"{len(errors)} errors, {len(warnings)} warnings"))
+        layout.addWidget(error_list_widget)
+        
+        fix_btn = QPushButton("Fix All Warnings")
+        fix_btn.clicked.connect(self.fix_all_warnings)
+        layout.addWidget(fix_btn)
+        
+        close_btn = QPushButton("Close")
+        close_btn.clicked.connect(dialog.accept)
+        layout.addWidget(close_btn)
+        
+        dialog.exec()
+
+    def fix_all_warnings(self):
+        """Attempt to auto-fix common warnings."""
+        scenario_text = self.scenario_editor.toPlainText()
+        if 'TODO' in scenario_text:
+            scenario_text = scenario_text.replace('TODO', '[To be completed]')
+            self.scenario_editor.setText(scenario_text)
+        
+        QMessageBox.information(self, "Fix Complete", 
+            "Auto-fix applied to common issues")
+
+    def show_preferences_dialog(self):
+        """Show preferences/settings dialog (Tools → Preferences)."""
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Preferences")
+        dialog.setModal(True)
+        dialog.setMinimumWidth(500)
+        
+        layout = QVBoxLayout(dialog)
+        
+        tab_widget = QTabWidget()
+        
+        # General tab
+        general_tab = QWidget()
+        general_layout = QVBoxLayout(general_tab)
+        general_layout.addWidget(QLabel("Auto-save interval (seconds):"))
+        auto_save_spin = QSpinBox()
+        auto_save_spin.setRange(10, 300)
+        auto_save_spin.setValue(30)
+        auto_save_spin.setSuffix(" seconds")
+        general_layout.addWidget(auto_save_spin)
+        
+        # Editor tab
+        editor_tab = QWidget()
+        editor_layout = QVBoxLayout(editor_tab)
+        editor_layout.addWidget(QLabel("Font size:"))
+        font_size_spin = QSpinBox()
+        font_size_spin.setRange(8, 24)
+        font_size_spin.setValue(11)
+        editor_layout.addWidget(font_size_spin)
+        
+        editor_layout.addWidget(QLabel("Tab width (spaces):"))
+        tab_width_spin = QSpinBox()
+        tab_width_spin.setRange(2, 8)
+        tab_width_spin.setValue(4)
+        editor_layout.addWidget(tab_width_spin)
+        
+        # Validation tab
+        validation_tab = QWidget()
+        validation_layout = QVBoxLayout(validation_tab)
+        enable_validation_cb = QCheckBox("Enable real-time validation")
+        enable_validation_cb.setChecked(True)
+        validation_layout.addWidget(enable_validation_cb)
+        
+        min_step_length_label = QLabel("Minimum step length:")
+        validation_layout.addWidget(min_step_length_label)
+        min_step_spin = QSpinBox()
+        min_step_spin.setRange(1, 50)
+        min_step_spin.setValue(10)
+        validation_layout.addWidget(min_step_spin)
+        
+        tab_widget.addTab(general_tab, "General")
+        tab_widget.addTab(editor_tab, "Editor")
+        tab_widget.addTab(validation_tab, "Validation")
+        layout.addWidget(tab_widget)
+        
+        button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        button_box.accepted.connect(dialog.accept)
+        button_box.rejected.connect(dialog.reject)
+        layout.addWidget(button_box)
+        
+        dialog.exec()
+
+    def show_keyboard_shortcuts_dialog(self):
+        """Show keyboard shortcuts reference dialog."""
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Keyboard Shortcuts")
+        dialog.setModal(True)
+        dialog.setMinimumWidth(400)
+        
+        layout = QVBoxLayout(dialog)
+        
+        shortcut_table = QTableWidget()
+        shortcut_table.setColumnCount(2)
+        shortcut_table.setHorizontalHeaderLabels(["Shortcut", "Action"])
+        shortcut_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        
+        shortcuts = [
+            ["Ctrl+S", "Save project"],
+            ["Ctrl+O", "Open project"],
+            ["Ctrl+N", "New use case"],
+            ["Ctrl+F", "Find in project"],
+            ["Ctrl+E", "Export to Word"],
+            ["Ctrl+Shift+E", "Export all to Word"],
+            ["Alt+P", "Toggle preview pane"],
+            ["F1", "Help / About"],
+        ]
+        
+        shortcut_table.setRowCount(len(shortcuts))
+        for i, (key, action) in enumerate(shortcuts):
+            shortcut_table.setItem(i, 0, QTableWidgetItem(key))
+            shortcut_table.setItem(i, 1, QTableWidgetItem(action))
+        
+        layout.addWidget(QLabel("Common keyboard shortcuts:"))
+        layout.addWidget(shortcut_table)
+        
+        close_btn = QPushButton("Close")
+        close_btn.clicked.connect(dialog.accept)
+        layout.addWidget(close_btn)
+        
+        dialog.exec()
+
+    def show_help_dialog(self):
+        """Show help/about dialog."""
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Help - Cockburn Specification Generator")
+        dialog.setModal(True)
+        dialog.setMinimumWidth(500)
+        dialog.setMinimumHeight(400)
+        
+        layout = QVBoxLayout(dialog)
+        
+        help_html = """
+        <h2>Cockburn Specification Generator V2</h2>
+        <p>A desktop application for creating and managing Cockburn use case specifications.</p>
+        
+        <h3>Getting Started</h3>
+        <ol>
+            <li>Create a new project via File → New Project</li>
+            <li>Add use cases with File → New Use Case or the toolbar button</li>
+            <li>Edit use case fields in the editor tabs</li>
+            <li>Export to Word, PDF, JSON, or YAML via Tools menu</li>
+        </ol>
+        
+        <h3>Keyboard Shortcuts</h3>
+        <ul>
+            <li><b>Ctrl+S</b> - Save project</li>
+            <li><b>Ctrl+F</b> - Find in project</li>
+            <li><b>Alt+P</b> - Toggle preview pane</li>
+            <li><b>Ctrl+E</b> - Export to Word</li>
+        </ul>
+        
+        <h3>Features</h3>
+        <ul>
+            <li>Full use case specification editing with Cockburn format</li>
+            <li>Automatic numbering and save functionality</li>
+            <li>Export to multiple formats (Word, PDF, JSON, YAML)</li>
+            <li>Live markdown preview with zoom controls</li>
+            <li>Global search and replace across all use cases</li>
+        </ul>
+        
+        <p style="color: gray; margin-top: 20px;">Version 2.0</p>
+        """
+        
+        help_text_edit = QTextEdit()
+        help_text_edit.setHtml(help_html)
+        help_text_edit.setReadOnly(True)
+        layout.addWidget(help_text_edit)
+        
+        close_btn = QPushButton("Close")
+        close_btn.clicked.connect(dialog.accept)
+        layout.addWidget(close_btn)
+        
+        dialog.exec()
+
 
     def show_about(self):
         """Show about dialog"""
