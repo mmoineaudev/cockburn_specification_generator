@@ -732,6 +732,11 @@ class CockburnGUI(QMainWindow):
         import_project_action = QAction("Import Project", self)
         import_project_action.triggered.connect(self.import_project)
         file_menu.addAction(import_project_action)
+        # Import template
+        import_template_action = QAction("Import Template", self)
+        import_template_action.triggered.connect(self.import_template)
+        file_menu.addAction(import_template_action)
+
         
         
         file_menu.addSeparator()
