@@ -520,7 +520,7 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * [x] Implementation task 7: Run background processing without freezing GUI
 * [x] Implementation task 8: Show summary dialog with success/failure count
 * [x] Implementation task 9: Add optional auto-open of generated Word folder
-* [ ] Implementation task 10: Handle graceful cancellation mid-export
+* [x] Implementation task 10: Handle graceful cancellation mid-export
 
 ---
 
@@ -848,13 +848,13 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Performance Target: Tree updates instantaneously on change
 * Frequency: Very High - primary navigation mechanism
 
-* [ ] Implementation task 1: Populate navigation tree with all use cases in project
-* [ ] Implementation task 2: Display use case number, name, and last modified date
-* [ ] Implementation task 3: Show asterisk (*) indicator for modified files
-* [ ] Implementation task 4: Implement click to select and open editor
-* [ ] Implementation task 5: Add double-click to open use case in editor pane
-* [ ] Implementation task 6: Create right-click context menu with actions
-* [ ] Implementation task 7: Enable sorting by name, number, or date via column headers
+* [x] Implementation task 1: Populate navigation tree with all use cases in project
+* [x] Implementation task 2: Display use case number, name, and last modified date
+* [x] Implementation task 3: Show asterisk (*) indicator for modified files
+* [x] Implementation task 4: Implement click to select and open editor
+* [x] Implementation task 5: Add double-click to open use case in editor pane
+* [x] Implementation task 6: Create right-click context menu with actions
+* [x] Implementation task 7: Enable sorting by name, number, or date via column headers
 * [ ] Implementation task 8: Add filter input box for tree filtering by search text
 * [ ] Implementation task 9: Implement Expand/Collapse all buttons for tree state
 * [x] Implementation task 10: Visually highlight current selection
@@ -903,15 +903,15 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Performance Target: Favorite operations complete within 500ms
 * Frequency: Low - initial organization
 
-* [ ] Implementation task 1: Create right-click context menu in navigation tree
-* [ ] Implementation task 2: Add "Add to Favorites" option to context menu
-* [ ] Implementation task 3: Implement favorite storage in project metadata.json
-* [ ] Implementation task 4: Display favorites in dedicated section or pinned at top
-* [ ] Implementation task 5: Make favorites collapsible/expandable section
-* [ ] Implementation task 6: Show unsaved changes indicator on favorite items
-* [ ] Implementation task 7: Add "Remove from Favorites" option via right-click
-* [ ] Implementation task 8: Persist favorites across project sessions
-* [ ] Implementation task 9: Preserve order of multiple favorites
+* [x] Implementation task 1: Create right-click context menu in navigation tree
+* [x] Implementation task 2: Add "Add to Favorites" option to context menu
+* [x] Implementation task 3: Implement favorite storage in project metadata.json
+* [x] Implementation task 4: Display favorites in dedicated section or pinned at top
+* [x] Implementation task 5: Make favorites collapsible/expandable section
+* [x] Implementation task 6: Show unsaved changes indicator on favorite items
+* [x] Implementation task 7: Add "Remove from Favorites" option via right-click
+* [x] Implementation task 8: Persist favorites across project sessions
+* [x] Implementation task 9: Preserve order of multiple favorites
 * [x] Implementation task 10: Implement bulk actions (export favorites only)
 
 ---
@@ -959,14 +959,14 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Performance Target: Preview update within 300ms of edit
 * Frequency: High - during editing sessions
 
-* [ ] Implementation task 1: Create toolbar toggle button for preview pane visibility (Alt+P)
-* [ ] Implementation task 2: Implement right pane with rendered Markdown content display
-* [ ] Implementation task 3: Add live update within 300ms of editor changes
-* [ ] Implementation task 4: Display formatting indicators (# for heading, ** for bold)
-* [ ] Implementation task 5: Render headings, lists, code blocks, and tables properly
-* [ ] Implementation task 6: Make links clickable and functional in preview
-* [ ] Implementation task 7: Add toggle button to switch between preview/edit modes
-* [ ] Implementation task 8: Implement sync scrolling option for synchronized vertical scroll
+* [x] Implementation task 1: Create toolbar toggle button for preview pane visibility (Alt+P)
+* [x] Implementation task 2: Implement right pane with rendered Markdown content display
+* [x] Implementation task 3: Add live update within 300ms of editor changes
+* [x] Implementation task 4: Display formatting indicators (# for heading, ** for bold)
+* [x] Implementation task 5: Render headings, lists, code blocks, and tables properly
+* [x] Implementation task 6: Make links clickable and functional in preview
+* [x] Implementation task 7: Add toggle button to switch between preview/edit modes
+* [x] Implementation task 8: Implement sync scrolling option for synchronized vertical scroll
 * [ ] Implementation task 9: Add zoom controls (50%, 100%, 150%, 200%)
 * [ ] Implementation task 10: Provide print view option
 
@@ -1125,16 +1125,16 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Performance Target: Shortcut dialog loads within 500ms
 * Frequency: Medium - for power users
 
-* [ ] Implementation task 1: Create Help → Keyboard Shortcuts menu item (F1)
-* [ ] Implementation task 2: Implement keyboard shortcuts dialog showing all available shortcuts
-* [ ] Implementation task 3: Categorize shortcuts by action (File, Edit, View, Tools)
-* [ ] Implementation task 4: Add search/filter functionality in dialog
-* [ ] Implementation task 5: Enable copy of all shortcuts to clipboard
-* [ ] Implementation task 6: Display shortcuts with current bindings
-* [ ] Implementation task 7: Implement standard shortcuts (Ctrl+S, Ctrl+O, etc.)
-* [ ] Implementation task 8: Allow custom shortcut configuration via Preferences
+* [x] Implementation task 1: Create Help → Keyboard Shortcuts menu item (F1)
+* [x] Implementation task 2: Implement keyboard shortcuts dialog showing all available shortcuts
+* [x] Implementation task 3: Categorize shortcuts by action (File, Edit, View, Tools)
+* [x] Implementation task 4: Add search/filter functionality in dialog
+* [x] Implementation task 5: Enable copy of all shortcuts to clipboard
+* [x] Implementation task 6: Display shortcuts with current bindings
+* [x] Implementation task 7: Implement standard shortcuts (Ctrl+S, Ctrl+O, etc.)
+* [x] Implementation task 8: Allow custom shortcut configuration via Preferences
 * [ ] Implementation task 9: Add conflict detection for duplicate bindings
-* [ ] Implementation task 10: Provide Reset to defaults option
+* [x] Implementation task 10: Provide Reset to defaults option
 
 ---
 
@@ -1180,15 +1180,15 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Performance Target: Help loads within 1 second
 * Frequency: Low - for new users and reference
 
-* [ ] Implementation task 1: Create Help → User Guide menu item (F1)
-* [ ] Implementation task 2: Implement help viewer with built-in documentation
-* [ ] Implementation task 3: Include Getting Started, Feature Descriptions, and Tutorials
-* [ ] Implementation task 4: Add search box for searching across entire help system
-* [ ] Implementation task 5: Implement context-sensitive help on dialogs (F1)
-* [ ] Implementation task 6: Display navigation with table of contents
-* [ ] Implementation task 7: Format help content in Markdown or HTML
-* [ ] Implementation task 8: Make links to external documentation functional
-* [ ] Implementation task 9: Localize help content (English, French)
+* [x] Implementation task 1: Create Help → User Guide menu item (F1)
+* [x] Implementation task 2: Implement help viewer with built-in documentation
+* [x] Implementation task 3: Include Getting Started, Feature Descriptions, and Tutorials
+* [x] Implementation task 4: Add search box for searching across entire help system
+* [x] Implementation task 5: Implement context-sensitive help on dialogs (F1)
+* [x] Implementation task 6: Display navigation with table of contents
+* [x] Implementation task 7: Format help content in Markdown or HTML
+* [x] Implementation task 8: Make links to external documentation functional
+* [x] Implementation task 9: Localize help content (English, French)
 * [ ] Implementation task 10: Allow opening help in external browser
 
 ---
