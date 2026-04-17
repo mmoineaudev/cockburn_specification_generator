@@ -623,16 +623,16 @@ This project transforms the CLI Cockburn Specification Generator into a full-fea
 * Performance Target: Template import within 2 seconds
 * Frequency: Low - initial setup and updates
 
-* [ ] Implementation task 1: Create File → Import Template menu item
-* [ ] Implementation task 2: Implement file dialog filtering .md and .json templates
-* [ ] Implementation task 3: Add template structure validation for required fields
-* [ ] Implementation task 4: Create preview dialog showing template with placeholders
-* [ ] Implementation task 5: Allow editing of template name and description
-* [ ] Implementation task 6: Store imported templates in local template directory
-* [ ] Implementation task 7: Add imported templates to New Use Case dialog dropdown
-* [ ] Implementation task 8: Extract and store template metadata (author, version)
-* [ ] Implementation task 9: Show confirmation message on successful import
-* [ ] Implementation task 10: Handle duplicate name conflicts with replace/rename options
+* [x] Implementation task 1: Create File → Import Template menu item
+* [x] Implementation task 2: Implement file dialog filtering .md and .json templates
+* [x] Implementation task 3: Add template structure validation for required fields
+* [x] Implementation task 4: Create preview dialog showing template with placeholders
+* [x] Implementation task 5: Allow editing of template name and description
+* [x] Implementation task 6: Store imported templates in local template directory
+* [x] Implementation task 7: Add imported templates to New Use Case dialog dropdown
+* [x] Implementation task 8: Extract and store template metadata (author, version)
+* [x] Implementation task 9: Show confirmation message on successful import
+* [x] Implementation task 10: Handle duplicate name conflicts with replace/rename options
 
 ---
 

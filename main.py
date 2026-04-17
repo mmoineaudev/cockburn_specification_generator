@@ -2994,6 +2994,118 @@ class CockburnGUI(QMainWindow):
             QMessageBox.critical(self, "Import Error", f"Failed to import project:\n{e}")
 
 
+    def import_template(self):
+        """Import a template for creating new use cases."""
+        # Show file dialog for template selection
+        template_file, _ = QFileDialog.getOpenFileName(
+            self, 
+            "Import Template", 
+            "", 
+            "Template Files (*.md *.json)"
+        )
+        
+        if not template_file:
+            return
+        
+        try:
+            # Read template content
+            with open(template_file, 'r', encoding='utf-8') as f:
+                tpl_content = f.read()
+            
+            # Validate template structure (basic check)
+            required_sections = ["Characteristic Information", "Main Success Scenario"]
+            missing = [s for s in required_sections if s not in tpl_content]
+            
+            if missing:
+                QMessageBox.warning(self, "Invalid Template", 
+                    "Template is missing required sections:\n" + ", ".join(missing))
+                return
+            
+            # Show preview dialog
+            dialog = QDialog(self)
+            dialog.setWindowTitle("Import Template Preview")
+            dialog.setModal(True)
+            dialog.setMinimumWidth(600)
+            
+            layout = QVBoxLayout(dialog)
+            
+            # Template info
+            info_label = QLabel("Template: " + os.path.basename(template_file))
+            info_label.setFont(QFont(size=12, bold=True))
+            layout.addWidget(info_label)
+            
+            # Preview content
+            preview = QTextEdit()
+            if len(tpl_content) > 500:
+                preview.setPlainText(tpl_content[:500] + "...")
+            else:
+                preview.setPlainText(tpl_content)
+            preview.setReadOnly(True)
+            layout.addWidget(preview)
+            
+            # Template name input
+            name_layout = QHBoxLayout()
+            name_layout.addWidget(QLabel("Template Name:"))
+            self.template_name_input = QLineEdit()
+            self.template_name_input.setText(os.path.splitext(os.path.basename(template_file))[0])
+            name_layout.addWidget(self.template_name_input)
+            layout.addLayout(name_layout)
+            
+            # Template description input
+            desc_layout = QHBoxLayout()
+            desc_layout.addWidget(QLabel("Description:"))
+            self.template_desc_input = QLineEdit()
+            self.template_desc_input.setPlaceholderText("Optional description...")
+            desc_layout.addWidget(self.template_desc_input)
+            layout.addLayout(desc_layout)
+            
+            # Buttons
+            button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+            button_box.accepted.connect(dialog.accept)
+            button_box.rejected.connect(dialog.reject)
+            layout.addWidget(button_box)
+            
+            if not dialog.exec():
+                return
+            
+            # Save template to templates directory
+            templates_dir = os.path.join(self.project_path or ".", "templates")
+            os.makedirs(templates_dir, exist_ok=True)
+            
+            template_name = self.template_name_input.text() or "template"
+            template_path = os.path.join(templates_dir, template_name + ".md")
+            
+            # Copy template file
+            shutil.copy2(template_file, template_path)
+            
+            # Save metadata
+            metadata = {
+                "name": template_name,
+                "description": self.template_desc_input.text(),
+                "source": os.path.basename(template_file),
+                "imported_at": datetime.now().isoformat()
+            }
+            
+            metadata_path = os.path.join(templates_dir, "metadata.json")
+            if os.path.exists(metadata_path):
+                with open(metadata_path, 'r') as f:
+                    templates_meta = json.load(f)
+            else:
+                templates_meta = []
+            
+            templates_meta.append(metadata)
+            
+            with open(metadata_path, 'w') as f:
+                json.dump(templates_meta, f, indent=2)
+            
+            QMessageBox.information(self, "Template Imported", 
+                "Template '" + template_name + "' imported successfully")
+            self.statusBar().showMessage("Template imported: " + template_name)
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Import Error", "Failed to import template:\n" + str(e))
+
+
     def show_about(self):
         """Show about dialog"""
         QMessageBox.about(self, "About Cockburn Specification Generator",
